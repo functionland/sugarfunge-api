@@ -13,6 +13,7 @@ pub struct Config {
 }
 
 pub fn init() -> Config {
+    // SBP-M1 review: typo
     let panic_message: String = "enviroment variable is not set".to_string();
 
     Config {

@@ -23,6 +23,7 @@ impl Into<ChallengeStateValue> for ChallengeState {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GenerateChallengeInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
 }
 
@@ -38,6 +39,7 @@ pub struct GenerateChallengeOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct VerifyChallengeInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub pool_id: PoolId,
     pub cids: Vec<Cid>,
@@ -56,6 +58,7 @@ pub struct VerifyChallengeOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MintLaborTokensInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub class_id: ClassId,
     pub asset_id: AssetId,
@@ -100,6 +103,7 @@ pub struct VerifyFileSizeOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ProvideFileSizeInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub pool_id: PoolId,
     pub cids: Vec<Cid>,

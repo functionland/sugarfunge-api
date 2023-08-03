@@ -1,5 +1,5 @@
 use std::str::FromStr;
-
+// SBP-M1 review: nest all use statements
 use crate::state::*;
 use crate::util::*;
 use actix_web::{error, web, HttpResponse};
@@ -15,6 +15,7 @@ pub async fn register(
     data: web::Data<AppState>,
     req: web::Json<RegisterInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let metadata: Vec<u8> = serde_json::to_vec(&req.metadata).unwrap_or_default();
@@ -66,6 +67,7 @@ pub async fn create(
     data: web::Data<AppState>,
     req: web::Json<CreateInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let owners = transform_owners_input(transform_vec_account_to_string(req.owners.clone()));
@@ -106,6 +108,7 @@ pub async fn sweep(
     data: web::Data<AppState>,
     req: web::Json<SweepInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let bag = sp_core::crypto::AccountId32::try_from(&req.bag).map_err(map_account_err)?;
@@ -142,6 +145,7 @@ pub async fn deposit(
     data: web::Data<AppState>,
     req: web::Json<DepositInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let bag = subxt::utils::AccountId32::try_from(&req.bag).map_err(map_account_err)?;

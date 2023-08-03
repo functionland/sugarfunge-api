@@ -48,6 +48,7 @@ pub fn map_account_err(e: sp_core::crypto::PublicError) -> actix_web::Error {
     error::ErrorBadRequest(req_error)
 }
 
+// SBP-M1 review: remove, signing should be done on the client.
 pub fn get_pair_from_seed(seed: &Seed) -> error::Result<sp_core::sr25519::Pair> {
     sp_core::sr25519::Pair::from_string(seed.as_str(), None).map_err(|e| {
         let req_error = RequestError {

@@ -1,5 +1,5 @@
 use std::str::FromStr;
-
+// SBP-M1 review: nest all use statements
 use crate::fula::get_vec_cids_from_input;
 use crate::fula::get_vec_cids_from_node;
 use crate::fula::transform_vec_uploader_data_runtime_to_vec_uploader_data;
@@ -23,6 +23,7 @@ pub async fn generate_challenge(
     data: web::Data<AppState>,
     req: web::Json<GenerateChallengeInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed.clone())?;
     let signer = PairSigner::new(pair);
 
@@ -59,6 +60,7 @@ pub async fn verify_challenge(
     data: web::Data<AppState>,
     req: web::Json<VerifyChallengeInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed.clone())?;
     let signer = PairSigner::new(pair);
 
@@ -103,6 +105,7 @@ pub async fn mint_labor_tokens(
     data: web::Data<AppState>,
     req: web::Json<MintLaborTokensInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed.clone())?;
     let signer = PairSigner::new(pair);
 
@@ -152,6 +155,7 @@ pub async fn verify_pending_challenge(
         .challenge_requests_root()
         .to_root_bytes();
 
+    // SBP-M1 review: remove commented out code
     // println!("query_key account_to len: {}", query_key.len());
 
     let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
@@ -161,12 +165,14 @@ pub async fn verify_pending_challenge(
         .await
         .map_err(map_subxt_err)?;
 
+    // SBP-M1 review: remove commented out code
     // println!("Obtained keys:");
     for key in keys.iter() {
         let account_idx = 48;
         let account_key = key.0.as_slice()[account_idx..(account_idx + 32)].to_vec();
         let account_id = AccountId32::decode(&mut &account_key[..]);
         let account_id = Account::from(account_id.unwrap());
+        // SBP-M1 review: remove commented out code
         // println!("account_id: {:?}", account_id);
 
         if AccountId32::from(Public::from_str(&account_id.as_str()).map_err(map_account_err)?)
@@ -193,6 +199,7 @@ pub async fn verify_file_size(
         .manifests_root()
         .to_root_bytes();
 
+    // SBP-M1 review: remove commented out code
     // println!("query_key account_to len: {}", query_key.len());
 
     let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
@@ -202,12 +209,14 @@ pub async fn verify_file_size(
         .await
         .map_err(map_subxt_err)?;
 
+    // SBP-M1 review: remove commented out code
     // println!("Obtained keys:");
     for key in keys.iter() {
         let cid_idx = 68;
         let cid_key = key.0.as_slice()[cid_idx..].to_vec();
         let cid_id = String::decode(&mut &cid_key[..]);
         let cid_id = cid_id.unwrap();
+        // SBP-M1 review: remove commented out code
         // println!("cid_id: {:?}", cid_id);
 
         if let Some(storage_data) = storage.fetch_raw(&key.0).await.map_err(map_subxt_err)? {
@@ -238,6 +247,7 @@ pub async fn provide_file_size(
     data: web::Data<AppState>,
     req: web::Json<ProvideFileSizeInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed.clone())?;
     let signer = PairSigner::new(pair);
 
@@ -284,6 +294,7 @@ pub async fn get_challenges(data: web::Data<AppState>) -> error::Result<HttpResp
         .challenge_requests_root()
         .to_root_bytes();
 
+    // SBP-M1 review: remove commented out code
     // println!("query_key account_to len: {}", query_key.len());
 
     let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
@@ -293,12 +304,14 @@ pub async fn get_challenges(data: web::Data<AppState>) -> error::Result<HttpResp
         .await
         .map_err(map_subxt_err)?;
 
+    // SBP-M1 review: remove commented out code
     // println!("Obtained keys:");
     for key in keys.iter() {
         let account_idx = 48;
         let account_key = key.0.as_slice()[account_idx..(account_idx + 32)].to_vec();
         let account_id = AccountId32::decode(&mut &account_key[..]);
         let account_id = Account::from(account_id.unwrap());
+        // SBP-M1 review: remove commented out code
         // println!("account_id: {:?}", account_id);
 
         if let Some(storage_data) = storage.fetch_raw(&key.0).await.map_err(map_subxt_err)? {
@@ -323,6 +336,7 @@ pub async fn get_claims(data: web::Data<AppState>) -> error::Result<HttpResponse
 
     let query_key = sugarfunge::storage().fula().claims_root().to_root_bytes();
 
+    // SBP-M1 review: remove commented out code
     // println!("query_key account_to len: {}", query_key.len());
 
     let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
@@ -332,12 +346,14 @@ pub async fn get_claims(data: web::Data<AppState>) -> error::Result<HttpResponse
         .await
         .map_err(map_subxt_err)?;
 
+    // SBP-M1 review: remove commented out code
     // println!("Obtained keys:");
     for key in keys.iter() {
         let account_idx = 48;
         let account_key = key.0.as_slice()[account_idx..(account_idx + 32)].to_vec();
         let account_id = AccountId32::decode(&mut &account_key[..]);
         let account_id = Account::from(account_id.unwrap());
+        // SBP-M1 review: remove commented out code
         // println!("account_id: {:?}", account_id);
 
         if let Some(storage_data) = storage.fetch_raw(&key.0).await.map_err(map_subxt_err)? {

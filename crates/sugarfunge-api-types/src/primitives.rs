@@ -1,3 +1,5 @@
+// SBP-M1 review: group use statements without line breaks
+// SBP-M1 review: no tests
 use std::{ops::Div, str::FromStr};
 
 use serde::{Deserialize, Serialize};
@@ -9,6 +11,8 @@ use sp_core::U256;
 use bevy_derive::{Deref, DerefMut};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Deref, DerefMut)]
+// SBP-M1 review: remove type, seed should not be passed to an API for signing but rather receive a signed extrinsic/transaction for passing to the chain for execution
+// SBP-M1 review: look at how https://github.com/paritytech/substrate-api-sidecar implements this at https://paritytech.github.io/substrate-api-sidecar/dist/
 pub struct Seed(String);
 
 impl From<String> for Seed {
@@ -297,6 +301,7 @@ impl From<ReplicationFactor> for u16 {
     }
 }
 
+// SBP-M1 review: consider replacing the below helper methods with From/Into trait implementations where possible, so transformation can be simply achieved via .into()
 pub fn transform_vec_account_to_string(in_vec: Vec<Account>) -> Vec<String> {
     in_vec
         .into_iter()

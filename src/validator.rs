@@ -1,5 +1,5 @@
 use std::str::FromStr;
-
+// SBP-M1 review: nest all use statements
 use crate::state::*;
 use crate::util::*;
 use actix_web::{error, web, HttpResponse};
@@ -13,6 +13,7 @@ pub async fn add_validator(
     data: web::Data<AppState>,
     req: web::Json<AddValidatorInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let validator_id =
@@ -54,6 +55,7 @@ pub async fn remove_validator(
     data: web::Data<AppState>,
     req: web::Json<RemoveValidatorInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let validator_id =

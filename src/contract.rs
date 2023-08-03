@@ -1,3 +1,4 @@
+// SBP-M1 review: nest all use statements
 use crate::bundle::*;
 use crate::config;
 use crate::state::AppState;
@@ -143,6 +144,7 @@ pub async fn goerli_convert_to_fula(
 
     // Create the bundle schema
 
+    // SBP-M1 review: remove commented out code
     // println!("1. CREATING SCHEMA");
 
     let schema = (
@@ -160,11 +162,13 @@ pub async fn goerli_convert_to_fula(
     let api = &data.api;
 
     // Verify if the Bundle_id exist
+    // SBP-M1 review: remove commented out code
     // println!("2. VERIFYING IF THE BUNDLE ID EXIST");
 
     if let Ok(verification) = verify_bundle_exist(&data, bundle_id.encode_hex()).await {
         // If it doesn't exist, register the bundle
         if !verification {
+            // SBP-M1 review: remove commented out code
             // println!("3. THE BUNDLE ID DOESN'T EXISTS");
             let call = sugarfunge::tx().bundle().register_bundle(
                 env.claimed_token_class_id.into(),
@@ -182,10 +186,12 @@ pub async fn goerli_convert_to_fula(
                 .wait_for_finalized_success()
                 .await
                 .map_err(map_sf_err)?;
+            // SBP-M1 review: remove commented out code
             // println!("4. BUNDLE CREATED");
         };
 
         // If exist, continue
+        // SBP-M1 review: remove commented out code
         // println!("5. THE BUNDLE ID EXISTS");
         // Mint the Bundle with the bundle_id
 
@@ -210,6 +216,7 @@ pub async fn goerli_convert_to_fula(
         match result {
             Some(_) => {
                 // If the bundle mint is successful, execute the contract mint
+                // SBP-M1 review: remove commented out code
                 // println!("6. BUNDLE MINTED SUCCESSFULLY");
                 let result = goerli_mint_to(
                     req.wallet_account.as_str(),
@@ -257,6 +264,7 @@ pub async fn mumbai_convert_to_fula(
 
     // Create the bundle schema
 
+    // SBP-M1 review: remove commented out code
     // println!("1. CREATING SCHEMA");
 
     let schema = (
@@ -274,11 +282,13 @@ pub async fn mumbai_convert_to_fula(
     let api = &data.api;
 
     // Verify if the Bundle_id exist
+    // SBP-M1 review: remove commented out code
     // println!("2. VERIFYING IF THE BUNDLE ID EXIST");
 
     if let Ok(verification) = verify_bundle_exist(&data, bundle_id.encode_hex()).await {
         // If it doesn't exist, register the bundle
         if !verification {
+            // SBP-M1 review: remove commented out code
             // println!("3. THE BUNDLE ID DOESN'T EXISTS");
             let call = sugarfunge::tx().bundle().register_bundle(
                 env.claimed_token_class_id.into(),
@@ -296,10 +306,12 @@ pub async fn mumbai_convert_to_fula(
                 .wait_for_finalized_success()
                 .await
                 .map_err(map_sf_err)?;
+            // SBP-M1 review: remove commented out code
             // println!("4. BUNDLE CREATED");
         };
 
         // If exist, continue
+        // SBP-M1 review: remove commented out code
         // println!("5. THE BUNDLE ID EXISTS");
         // Mint the Bundle with the bundle_id
 
@@ -324,6 +336,7 @@ pub async fn mumbai_convert_to_fula(
         match result {
             Some(_) => {
                 // If the bundle mint is successful, execute the contract mint
+                // SBP-M1 review: remove commented out code
                 // println!("6. BUNDLE MINTED SUCCESSFULLY");
                 let result = mumbai_mint_to(
                     req.wallet_account.as_str(),

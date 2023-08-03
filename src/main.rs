@@ -1,3 +1,5 @@
+// SBP-M1 review: add doc comments to all functions to enable generation of API docs - e.g. https://github.com/juhaku/utoipa
+// SBP-M1 review: add tests for all api endpoints
 use actix_cors::Cors;
 use actix_web::{
     http, middleware,

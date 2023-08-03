@@ -1,3 +1,4 @@
+// SBP-M1 review: nest all use statements
 use crate::state::*;
 use crate::util::*;
 use actix_web::{error, web, HttpResponse};
@@ -16,6 +17,7 @@ pub async fn create_class(
     data: web::Data<AppState>,
     req: web::Json<CreateClassInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let to = sp_core::sr25519::Public::from_str(req.owner.as_str()).map_err(map_account_err)?;
@@ -83,6 +85,7 @@ pub async fn create(
     data: web::Data<AppState>,
     req: web::Json<CreateInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let metadata: Vec<u8> = serde_json::to_vec(&req.metadata).unwrap_or_default();
@@ -150,6 +153,7 @@ pub async fn update_metadata(
     data: web::Data<AppState>,
     req: web::Json<UpdateMetadataInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let metadata = serde_json::to_vec(&req.metadata).unwrap_or_default();
@@ -192,6 +196,7 @@ pub async fn mint(
     data: web::Data<AppState>,
     req: web::Json<MintInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let to = subxt::utils::AccountId32::try_from(&req.to).map_err(map_account_err)?;
@@ -235,6 +240,7 @@ pub async fn burn(
     data: web::Data<AppState>,
     req: web::Json<BurnInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let from = subxt::utils::AccountId32::try_from(&req.from).map_err(map_account_err)?;
@@ -319,14 +325,18 @@ pub async fn balances(
         .asset()
         .balances_root()
         .to_root_bytes();
+    // SBP-M1 review: remove commented out code
     // println!("query_key balances_root len: {}", query_key.len());
     query_key.extend(subxt::ext::sp_core::blake2_128(&account.encode()));
+    // SBP-M1 review: remove commented out code
     // println!("query_key account len: {}", query_key.len());
     if let Some(class_id) = req.class_id {
         let class_id: u64 = class_id.into();
         query_key.extend(subxt::ext::sp_core::blake2_128(&class_id.encode()));
+        // SBP-M1 review: remove commented out code
         // println!("query_key class_id len: {}", query_key.len());
     }
+    // SBP-M1 review: remove commented out code
     // if let Some(asset_id) = req.asset_id {
     //     let asset_id: u64 = asset_id.into();
     //     StorageMapKey::new(&asset_id, StorageHasher::Blake2_128Concat).to_bytes(&mut query_key);
@@ -340,10 +350,13 @@ pub async fn balances(
         .await
         .map_err(map_subxt_err)?;
 
+    // SBP-M1 review: remove commented out code
     // println!("Obtained keys:");
     for key in keys.iter() {
+        // SBP-M1 review: remove commented out code
         // println!("Key: len: {} 0x{}", key.0.len(), hex::encode(&key));
 
+        // SBP-M1 review: remove commented out code
         // let account_idx = 48;
         // let account_key = key.0.as_slice()[account_idx..(account_idx + 32)].to_vec();
         // let account_id = AccountId32::decode(&mut &account_key[..]);
@@ -354,17 +367,20 @@ pub async fn balances(
         let class_idx = 96;
         let class_key = key.0.as_slice()[class_idx..(class_idx + 8)].to_vec();
         let class_id = u64::decode(&mut &class_key[..]);
+        // SBP-M1 review: remove commented out code
         // println!("class_id: {:?}", class_id);
 
         let asset_idx = 120;
         let asset_key = key.0.as_slice()[asset_idx..(asset_idx + 8)].to_vec();
         let asset_id = u64::decode(&mut &asset_key[..]);
+        // SBP-M1 review: remove commented out code
         // println!("asset_id: {:?}", asset_id);
 
         let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
 
         if let Some(storage_data) = storage.fetch_raw(&key.0).await.map_err(map_subxt_err)? {
             let value = u128::decode(&mut &storage_data[..]);
+            // SBP-M1 review: remove commented out code
             // println!(
             //     "Class_Id: {:?} AssetId: {:?}  Value: {:?}",
             //     class_id, asset_id, value
@@ -388,6 +404,7 @@ pub async fn transfer_from(
     data: web::Data<AppState>,
     req: web::Json<TransferFromInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let account_from = subxt::utils::AccountId32::try_from(&req.from).map_err(map_account_err)?;

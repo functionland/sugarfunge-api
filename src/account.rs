@@ -1,3 +1,4 @@
+// SBP-M1 review: nest all use statements
 use crate::state::*;
 use crate::util::*;
 use actix_web::{error, web, HttpRequest, HttpResponse};
@@ -11,6 +12,7 @@ use sugarfunge_api_types::primitives::*;
 use sugarfunge_api_types::sugarfunge;
 
 /// Generate a unique seed and its associated account
+// SBP-M1 review: the seed should be generated on the client (where transactions are signed) and never leave the device. Remove this functionality.
 pub async fn create(_req: HttpRequest) -> error::Result<HttpResponse> {
     let seed = rand::thread_rng().gen::<[u8; 32]>();
     let seed = hex::encode(seed);
@@ -26,6 +28,7 @@ pub async fn create(_req: HttpRequest) -> error::Result<HttpResponse> {
 }
 
 /// Compute account from seed
+// SBP-M1 review: the seed should never leave the device. Remove this functionality.
 pub async fn seeded(req: web::Json<SeededAccountInput>) -> error::Result<HttpResponse> {
     let pair = get_pair_from_seed(&req.seed)?;
     let account = pair.public().into_account();
@@ -40,7 +43,9 @@ pub async fn fund(
     data: web::Data<AppState>,
     req: web::Json<FundAccountInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
+    // SBP-M1 review: remove commented out code
     //let signer = sp_core::sr25519::Pair::try_from(pair).unwrap();
     let signer = PairSigner::new(pair);
     let account = subxt::utils::AccountId32::try_from(&req.to).map_err(map_account_err)?;
@@ -52,6 +57,7 @@ pub async fn fund(
         .balances()
         .transfer(account, amount_input.into());
 
+    // SBP-M1 review: https://github.com/paritytech/subxt/blob/059723e4313d91e8ca0bcd84b0dd7dd66686ca50/subxt/src/tx/tx_client.rs#L429
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -86,6 +92,7 @@ pub async fn balance(
 
     let call = sugarfunge::storage().system().account(&account);
 
+    // SBP-M1 review: remove commented out code
     //let result = api.storage().fetch(&call, None).await;
     let block = api.blocks().at_latest().await.unwrap();
     let data = block.storage().fetch(&call).await.unwrap();
@@ -125,6 +132,7 @@ pub async fn exists(
     }
 }
 
+// SBP-M1 review: remove seed
 pub async fn refund_fees(data: web::Data<AppState>, seed: &Seed) -> error::Result<HttpResponse> {
     let result_fund = fund(
         data,

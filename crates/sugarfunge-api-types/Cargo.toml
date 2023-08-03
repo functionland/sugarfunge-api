@@ -3,6 +3,7 @@ name = "sugarfunge-api-types"
 version = "0.1.0"
 edition = "2021"
 
+#SBP-M1 review: remove comment
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -10,8 +11,11 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = ["derive", "full", "bit-vec"] }
 scale-info = { version = "2.0.0", features = ["bit-vec"] }
+#SBP-M1 review: consider updating
 bevy_derive = "0.10"
 
+#SBP-M1 review: use inline dependencies as above, rather than [dependencoes.X]
+#SBP-M1 review: assumed subxt to be somewhat version agnostic, relying on metadata retrieved from the node for extrinsic encoding/decoding. Consider whether this fork is really required.
 [dependencies.subxt]
 git = "https://github.com/SugarFunge/subxt.git"
 branch = "feature/polkadot-v0.9.42"

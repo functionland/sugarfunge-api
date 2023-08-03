@@ -1,14 +1,18 @@
+// SBP-M1 review: nest use statements
 use crate::account;
 use crate::state::*;
 use crate::util::*;
 use actix_web::{error, web, HttpResponse};
+// SBP-M1 review: nest use statements
 use codec::Decode;
 use codec::Encode;
 use serde_json::json;
 use std::str::FromStr;
+// SBP-M1 review: nest use statements
 use subxt::ext::sp_core::sr25519::Public;
 use subxt::tx::PairSigner;
 use subxt::utils::AccountId32;
+// SBP-M1 review: nest use statements
 use sugarfunge_api_types::fula::*;
 use sugarfunge_api_types::primitives::*;
 use sugarfunge_api_types::sugarfunge;
@@ -19,12 +23,14 @@ use sugarfunge_api_types::sugarfunge::runtime_types::functionland_fula::{
     UploaderData as UploaderDataRuntime,
 };
 use sugarfunge_api_types::sugarfunge::runtime_types::sp_core::bounded::bounded_vec::BoundedVec;
+// SBP-M1 review: remove commented out code
 // use sugarfunge_api_types::sugarfunge::runtime_types::sp_runtime::bounded::bounded_vec::BoundedVec;
 
 pub async fn upload_manifest(
     data: web::Data<AppState>,
     req: web::Json<UploadManifestInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed.clone())?;
     let signer = PairSigner::new(pair);
 
@@ -75,6 +81,7 @@ pub async fn batch_upload_manifest(
     data: web::Data<AppState>,
     req: web::Json<BatchUploadManifestInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed.clone())?;
     let signer = PairSigner::new(pair);
 
@@ -121,6 +128,7 @@ pub async fn storage_manifest(
     data: web::Data<AppState>,
     req: web::Json<StorageManifestInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let cid: Vec<u8> = String::from(&req.cid.clone()).into_bytes();
@@ -163,6 +171,7 @@ pub async fn batch_storage_manifest(
     data: web::Data<AppState>,
     req: web::Json<BatchStorageManifestInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed.clone())?;
     let signer = PairSigner::new(pair);
 
@@ -202,6 +211,7 @@ pub async fn remove_manifest(
     data: web::Data<AppState>,
     req: web::Json<RemoveManifestInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let cid: Vec<u8> = String::from(&req.cid.clone()).into_bytes();
@@ -243,6 +253,7 @@ pub async fn batch_remove_manifest(
     data: web::Data<AppState>,
     req: web::Json<BatchRemoveManifestInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
 
@@ -283,9 +294,11 @@ pub async fn remove_stored_manifest(
     data: web::Data<AppState>,
     req: web::Json<RemoveStoringManifestInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let cid: Vec<u8> = String::from(&req.cid.clone()).into_bytes();
+    // SBP-M1 review: remove commented out code
     // let cid: Vec<u8> = serde_json::to_vec(&req.cid.clone()).unwrap_or_default();
     let cid = BoundedVec(cid);
 
@@ -326,6 +339,7 @@ pub async fn batch_remove_stored_manifest(
     data: web::Data<AppState>,
     req: web::Json<BatchRemoveStoringManifestInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
 
@@ -365,6 +379,7 @@ pub async fn verify_manifest(
     data: web::Data<AppState>,
     req: web::Json<VerifyManifestsInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed.clone())?;
     let signer = PairSigner::new(pair);
 
@@ -402,6 +417,7 @@ pub async fn update_manifest(
     data: web::Data<AppState>,
     req: web::Json<UpdateManifestInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
 
@@ -456,12 +472,14 @@ pub async fn get_all_manifests(
         .fula()
         .manifests_root()
         .to_root_bytes();
+    // SBP-M1 review: remove commented out code
     // println!("query_key manifests_root len: {}", query_key.len());
 
     if let Some(value) = req.pool_id.clone() {
         let key_value: u32 = value.into();
         query_key.extend(subxt::ext::sp_core::blake2_128(&key_value.encode()));
     }
+    // SBP-M1 review: remove commented out code
     // println!("query_key account_to len: {}", query_key.len());
 
     let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
@@ -471,9 +489,11 @@ pub async fn get_all_manifests(
         .await
         .map_err(map_subxt_err)?;
 
+    // SBP-M1 review: remove commented out code
     // println!("Obtained keys:");
     for key in keys.iter() {
         let mut meet_requirements = true;
+        // SBP-M1 review: remove commented out code
         // println!("Key: len: {} 0x{}", key.0.len(), hex::encode(&key));
 
         let pool_id_idx = 48;
@@ -535,6 +555,7 @@ pub async fn get_available_manifests(
         .fula()
         .manifests_root()
         .to_root_bytes();
+    // SBP-M1 review: remove commented out code
     // println!("query_key manifests_root len: {}", query_key.len());
 
     if let Some(value) = req.pool_id.clone() {
@@ -549,8 +570,10 @@ pub async fn get_available_manifests(
         .await
         .map_err(map_subxt_err)?;
 
+    // SBP-M1 review: remove commented out code
     // println!("Obtained keys:");
     for key in keys.iter() {
+        // SBP-M1 review: remove commented out code
         // println!("Key: len: {} 0x{}", key.0.len(), hex::encode(&key));
         let pool_id_idx = 48;
         let pool_id_key = key.0.as_slice()[pool_id_idx..(pool_id_idx + 4)].to_vec();
@@ -589,11 +612,13 @@ pub async fn get_all_manifests_storer_data(
         .fula()
         .manifests_storer_data_root()
         .to_root_bytes();
+    // SBP-M1 review: remove commented out code
     // println!("query_key manifests_root len: {}", query_key.len());
 
     if let Some(value) = req.pool_id.clone() {
         let key_value: u32 = value.into();
         query_key.extend(subxt::ext::sp_core::blake2_128(&key_value.encode()));
+        // SBP-M1 review: remove commented out code
         // println!("query_key pool_id len: {}", query_key.len());
     }
 
@@ -604,27 +629,32 @@ pub async fn get_all_manifests_storer_data(
         .await
         .map_err(map_subxt_err)?;
 
+    // SBP-M1 review: remove commented out code
     // println!("Obtained keys:");
     for key in keys.iter() {
         let mut meet_requirements = true;
+        // SBP-M1 review: remove commented out code
         // println!("Key: len: {} 0x{}", key.0.len(), hex::encode(&key));
 
         let pool_id_idx = 48;
         let pool_id_key = key.0.as_slice()[pool_id_idx..(pool_id_idx + 4)].to_vec();
         let pool_id_id = u32::decode(&mut &pool_id_key[..]);
         let pool_id = pool_id_id.unwrap();
+        // SBP-M1 review: remove commented out code
         // println!("pool_id: {:?}", pool_id);
 
         let account_idx = 68;
         let account_key = key.0.as_slice()[account_idx..(account_idx + 32)].to_vec();
         let account_id = AccountId32::decode(&mut &account_key[..]);
         let account_id = Account::from(account_id.unwrap());
+        // SBP-M1 review: remove commented out code
         // println!("account_id: {:?}", account_id);
 
         let cid_idx = 116;
         let cid_key = key.0.as_slice()[cid_idx..].to_vec();
         let cid_id = String::decode(&mut &cid_key[..]);
         let cid_id = cid_id.unwrap();
+        // SBP-M1 review: remove commented out code
         // println!("cid_id: {:?}", cid_id);
 
         if let Some(storage_data) = storage.fetch_raw(&key.0).await.map_err(map_subxt_err)? {
@@ -659,6 +689,8 @@ pub async fn get_all_manifests_storer_data(
     }))
 }
 
+// SBP-M1 review: should not submit an extrinsic to query data, rather use a runtime-api
+// SBP-M1 review: subxt examples at https://github.com/paritytech/subxt/blob/master/subxt/examples/runtime_apis_raw.rs and https://github.com/paritytech/subxt/blob/master/subxt/examples/runtime_apis_static.rs
 pub async fn get_all_manifests_alter(
     data: web::Data<AppState>,
     req: web::Json<GetAllManifestsInput>,
@@ -667,6 +699,8 @@ pub async fn get_all_manifests_alter(
     let uploader = transform_option_account_value_reverse(req.uploader.clone()).await;
     let storer = transform_option_account_value_reverse(req.storer.clone()).await;
 
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
+    // SBP-M1 review: hard-coding bad practice, should be configurable as //Alice should not be used outside of development
     let pair = get_pair_from_seed(&Seed::from(String::from("//Alice")))?;
     let signer = PairSigner::new(pair);
 
@@ -698,12 +732,16 @@ pub async fn get_all_manifests_alter(
     }
 }
 
+// SBP-M1 review: should not submit an extrinsic to query data, rather use a runtime-api
+// SBP-M1 review: subxt examples at https://github.com/paritytech/subxt/blob/master/subxt/examples/runtime_apis_raw.rs and https://github.com/paritytech/subxt/blob/master/subxt/examples/runtime_apis_static.rs
 pub async fn get_all_available_manifests_alter(
     data: web::Data<AppState>,
     req: web::Json<GetAvailableManifestsInput>,
 ) -> error::Result<HttpResponse> {
     let pool_id = transform_option_pool_id_value_reverse(req.pool_id);
 
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
+    // SBP-M1 review: hard-coding bad practice, should be configurable as //Alice should not be used outside of development
     let pair = get_pair_from_seed(&Seed::from(String::from("//Alice")))?;
     let signer = PairSigner::new(pair);
 
@@ -733,6 +771,8 @@ pub async fn get_all_available_manifests_alter(
     }
 }
 
+// SBP-M1 review: should not submit an extrinsic to query data, rather use a runtime-api
+// SBP-M1 review: subxt examples at https://github.com/paritytech/subxt/blob/master/subxt/examples/runtime_apis_raw.rs and https://github.com/paritytech/subxt/blob/master/subxt/examples/runtime_apis_static.rs
 pub async fn get_all_manifests_storer_data_alter(
     data: web::Data<AppState>,
     req: web::Json<GetAllManifestsStorerDataInput>,
@@ -741,6 +781,8 @@ pub async fn get_all_manifests_storer_data_alter(
 
     let storer = transform_option_account_value_reverse(req.storer.clone()).await;
 
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
+    // SBP-M1 review: hard-coding bad practice, should be configurable as //Alice should not be used outside of development
     let pair = get_pair_from_seed(&Seed::from(String::from("//Alice")))?;
     let signer = PairSigner::new(pair);
 
@@ -861,6 +903,7 @@ pub fn get_vec_pool_id_from_node(pool_ids: Vec<u32>) -> Vec<PoolId> {
 }
 
 pub fn get_vec_replication_factor_from_input(
+    // SBP-M1 review: typo
     repliaction_factors: Vec<ReplicationFactor>,
 ) -> Vec<u16> {
     return repliaction_factors

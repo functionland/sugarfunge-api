@@ -1,5 +1,5 @@
 use std::str::FromStr;
-
+// SBP-M1 review: nest all use statements
 use crate::account;
 use crate::state::*;
 use crate::util::*;
@@ -17,12 +17,14 @@ use sugarfunge_api_types::sugarfunge::runtime_types::fula_pool::Pool as PoolRunt
 use sugarfunge_api_types::sugarfunge::runtime_types::fula_pool::PoolRequest as PoolRequestRuntime;
 use sugarfunge_api_types::sugarfunge::runtime_types::fula_pool::User as UserRuntime;
 use sugarfunge_api_types::sugarfunge::runtime_types::sp_core::bounded::bounded_vec::BoundedVec;
+// SBP-M1 review: remove commented out code
 // use sugarfunge_api_types::sugarfunge::runtime_types::sp_runtime::bounded::bounded_vec::BoundedVec;
 
 pub async fn create_pool(
     data: web::Data<AppState>,
     req: web::Json<CreatePoolInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
 
@@ -66,6 +68,7 @@ pub async fn leave_pool(
     data: web::Data<AppState>,
     req: web::Json<LeavePoolInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
 
@@ -103,6 +106,7 @@ pub async fn join_pool(
     data: web::Data<AppState>,
     req: web::Json<JoinPoolInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
 
@@ -143,6 +147,7 @@ pub async fn cancel_join_pool(
     data: web::Data<AppState>,
     req: web::Json<CancelJoinPoolInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
 
@@ -180,6 +185,7 @@ pub async fn vote(
     data: web::Data<AppState>,
     req: web::Json<VoteInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
 
@@ -229,6 +235,7 @@ pub async fn get_all_pools(
     let mut result_array = Vec::new();
 
     let query_key = sugarfunge::storage().pool().pools_root().to_root_bytes();
+    // SBP-M1 review: remove commented out code
     // println!("query_key pool_root len: {}", query_key.len());
 
     let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
@@ -238,15 +245,18 @@ pub async fn get_all_pools(
         .await
         .map_err(map_subxt_err)?;
 
+    // SBP-M1 review: remove commented out code
     // println!("Obtained keys:");
     for key in keys.iter() {
         let mut meet_requirements = true;
+        // SBP-M1 review: remove commented out code
         // println!("Key: len: {} 0x{}", key.0.len(), hex::encode(&key));
 
         let pool_id_idx = 48;
         let pool_id_key = key.0.as_slice()[pool_id_idx..(pool_id_idx + 4)].to_vec();
         let pool_id_id = u32::decode(&mut &pool_id_key[..]);
         let pool_id = pool_id_id.unwrap();
+        // SBP-M1 review: remove commented out code
         // println!("pool_id: {:?}", pool_id);
 
         if let Some(storage_data) = storage.fetch_raw(&key.0).await.map_err(map_subxt_err)? {
@@ -300,11 +310,13 @@ pub async fn get_all_pool_requests(
         .pool()
         .pool_requests_root()
         .to_root_bytes();
+    // SBP-M1 review: remove commented out code
     // println!("query_key pool_root len: {}", query_key.len());
 
     if let Some(value) = req.pool_id.clone() {
         let key_value: u32 = value.into();
         query_key.extend(subxt::ext::sp_core::blake2_128(&key_value.encode()));
+        // SBP-M1 review: remove commented out code
         // println!("query_key pool_id len: {}", query_key.len());
     }
 
@@ -315,21 +327,25 @@ pub async fn get_all_pool_requests(
         .await
         .map_err(map_subxt_err)?;
 
+    // SBP-M1 review: remove commented out code
     // println!("Obtained keys:");
     for key in keys.iter() {
         let mut meet_requirements = true;
+        // SBP-M1 review: remove commented out code
         // println!("Key: len: {} 0x{}", key.0.len(), hex::encode(&key));
 
         let pool_id_idx = 48;
         let pool_id_key = key.0.as_slice()[pool_id_idx..(pool_id_idx + 4)].to_vec();
         let pool_id_id = u32::decode(&mut &pool_id_key[..]);
         let pool_id = pool_id_id.unwrap();
+        // SBP-M1 review: remove commented out code
         // println!("pool_id: {:?}", pool_id);
 
         let account_idx = 68;
         let account_key = key.0.as_slice()[account_idx..(account_idx + 32)].to_vec();
         let account_id = AccountId32::decode(&mut &account_key[..]);
         let account_id = Account::from(account_id.unwrap());
+        // SBP-M1 review: remove commented out code
         // println!("account_id: {:?}", account_id);
 
         if let Some(storage_data) = storage.fetch_raw(&key.0).await.map_err(map_subxt_err)? {
@@ -381,8 +397,10 @@ pub async fn get_all_pool_users(
     let mut result_array = Vec::new();
 
     let query_key = sugarfunge::storage().pool().users_root().to_root_bytes();
+    // SBP-M1 review: remove commented out code
     // println!("query_key pool_root len: {}", query_key.len());
 
+    // SBP-M1 review: remove commented out code
     // if let Some(account_value) = req.account.clone() {
     //     let account = AccountId32::try_from(&account_value).map_err(map_account_err)?;
     //     StorageMapKey::new(account, StorageHasher::Blake2_128Concat).to_bytes(&mut query_key);
@@ -396,15 +414,18 @@ pub async fn get_all_pool_users(
         .await
         .map_err(map_subxt_err)?;
 
+    // SBP-M1 review: remove commented out code
     // println!("Obtained keys:");
     for key in keys.iter() {
         let mut meet_requirements = true;
+        // SBP-M1 review: remove commented out code
         // println!("Key: len: {} 0x{}", key.0.len(), hex::encode(&key));
 
         let account_idx = 48;
         let account_key = key.0.as_slice()[account_idx..(account_idx + 32)].to_vec();
         let account_id = AccountId32::decode(&mut &account_key[..]);
         let account_id = Account::from(account_id.unwrap());
+        // SBP-M1 review: remove commented out code
         // println!("account_id: {:?}", account_id);
 
         if let Some(storage_data) = storage.fetch_raw(&key.0).await.map_err(map_subxt_err)? {

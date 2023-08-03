@@ -4,14 +4,17 @@ use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use crossbeam::channel;
 use futures::StreamExt;
+// SBP-M1 review: nest all use statements
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use sugarfunge_api_types::sugarfunge;
 
 /// How often heartbeat pings are sent
+// SBP-M1 review: consider making configurable via cli arg
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 
 /// How long before lack of client response causes a timeout
+// SBP-M1 review: consider making configurable via cli arg
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// websocket connection is long running connection
@@ -242,6 +245,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SubcriptionServic
     }
 }
 
+// SBP-M1 review: typo
 /// WebSocket handshake and start `SubcriptionServiceWS` actor.
 pub async fn ws(
     data: web::Data<AppState>,

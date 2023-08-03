@@ -1,3 +1,4 @@
+// SBP-M1 review: nest all use statements
 use crate::state::*;
 use crate::util::*;
 use actix_web::Error;
@@ -23,6 +24,7 @@ pub async fn register_bundle(
     data: web::Data<AppState>,
     req: web::Json<RegisterBundleInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let schema = (
@@ -84,6 +86,7 @@ pub async fn mint_bundle(
     data: web::Data<AppState>,
     req: web::Json<MintBundleInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let account_from = subxt::utils::AccountId32::try_from(&req.from).map_err(map_account_err)?;
@@ -128,6 +131,7 @@ pub async fn burn_bundle(
     data: web::Data<AppState>,
     req: web::Json<BurnBundleInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let account_from = subxt::utils::AccountId32::try_from(&req.from).map_err(map_account_err)?;
@@ -185,16 +189,19 @@ pub async fn get_bundles_id(data: web::Data<AppState>) -> error::Result<HttpResp
         .map_err(map_subxt_err)?;
 
     for key in keys.iter() {
+        // SBP-M1 review: remove commented out code
         // println!("Key: len: {} 0x{}", key.0.len(), hex::encode(&key));
 
         let class_idx = 48;
         let class_key = key.0.as_slice()[class_idx..(class_idx + 8)].to_vec();
         let class_id = u64::decode(&mut &class_key[..]).unwrap();
+        // SBP-M1 review: remove commented out code
         // println!("class_id: {}", class_id);
 
         let asset_idx = 72;
         let asset_key = key.0.as_slice()[asset_idx..(asset_idx + 8)].to_vec();
         let asset_id = u64::decode(&mut &asset_key[..]).unwrap();
+        // SBP-M1 review: remove commented out code
         // println!("asset_id: {}", asset_id);
 
         if let Some(storage_data) = storage.fetch_raw(&key.0).await.map_err(map_subxt_err)? {
@@ -263,6 +270,7 @@ pub async fn get_bundles_data(data: web::Data<AppState>) -> error::Result<HttpRe
         .map_err(map_subxt_err)?;
 
     for key in keys.iter() {
+        // SBP-M1 review: remove commented out code
         // println!("Key: len: {} 0x{}", key.0.len(), hex::encode(&key));
 
         let bundle_idx = 48;

@@ -1,3 +1,4 @@
+// SBP-M1 review: no tests
 use crate::primitives::*;
 use serde::{Deserialize, Serialize};
 
@@ -210,6 +211,7 @@ pub struct Rates {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateMarketInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub market_id: MarketId,
 }
@@ -222,6 +224,7 @@ pub struct CreateMarketOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateMarketRateInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub market_id: MarketId,
     pub market_rate_id: MarketId,
@@ -236,6 +239,7 @@ pub struct CreateMarketRateOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DepositAssetsInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub market_id: MarketId,
     pub market_rate_id: MarketId,
@@ -254,6 +258,7 @@ pub struct DepositAssetsOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ExchangeAssetsInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub market_id: MarketId,
     pub market_rate_id: MarketId,

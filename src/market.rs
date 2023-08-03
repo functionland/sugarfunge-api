@@ -1,3 +1,4 @@
+// SBP-M1 review: nest all use statements
 use crate::state::*;
 use crate::util::*;
 use actix_web::{error, web, HttpResponse};
@@ -9,6 +10,7 @@ use sugarfunge_api_types::sugarfunge;
 use sugarfunge_api_types::sugarfunge::runtime_types::sp_core::bounded::bounded_vec::BoundedVec;
 use sugarfunge_api_types::sugarfunge::runtime_types::sugarfunge_market;
 
+// SBP-M1 review: typo
 fn extrinsinc_rates(
     in_rates: &[AssetRate],
 ) -> BoundedVec<sugarfunge_market::AssetRate<subxt::utils::AccountId32, u64, u64>> {
@@ -40,6 +42,7 @@ pub async fn create_market(
     data: web::Data<AppState>,
     req: web::Json<CreateMarketInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let api = &data.api;
@@ -75,6 +78,7 @@ pub async fn create_market_rate(
     data: web::Data<AppState>,
     req: web::Json<CreateMarketRateInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let api = &data.api;
@@ -116,6 +120,7 @@ pub async fn deposit_assets(
     data: web::Data<AppState>,
     req: web::Json<DepositAssetsInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let api = &data.api;
@@ -157,6 +162,7 @@ pub async fn exchange_assets(
     data: web::Data<AppState>,
     req: web::Json<ExchangeAssetsInput>,
 ) -> error::Result<HttpResponse> {
+    // SBP-M1 review: seed should never leave the client. This extrinsic should be created on the client, signed and then the resulting bytes either submitted directly to chain, or relayed via this API. Remove this functionality.
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
     let api = &data.api;

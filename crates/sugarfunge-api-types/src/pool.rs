@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreatePoolInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub pool_name: Name,
     pub peer_id: PeerId,
@@ -21,6 +22,7 @@ pub struct CreatePoolOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LeavePoolInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub pool_id: PoolId,
 }
@@ -35,6 +37,7 @@ pub struct LeavePoolOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct JoinPoolInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub pool_id: PoolId,
     pub peer_id: PeerId,
@@ -50,6 +53,7 @@ pub struct JoinPoolOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CancelJoinPoolInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub pool_id: PoolId,
 }
@@ -64,6 +68,7 @@ pub struct CancelJoinPoolOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct VoteInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub pool_id: PoolId,
     pub account: Account,

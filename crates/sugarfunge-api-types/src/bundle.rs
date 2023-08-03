@@ -10,6 +10,7 @@ pub struct BundleSchema {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RegisterBundleInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub class_id: ClassId,
     pub asset_id: AssetId,
@@ -27,6 +28,7 @@ pub struct RegisterBundleOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MintBundleInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub from: Account,
     pub to: Account,
@@ -45,6 +47,7 @@ pub struct MintBundleOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BurnBundleInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub from: Account,
     pub to: Account,

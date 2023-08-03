@@ -26,6 +26,7 @@ pub struct ContractAllowanceOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ConvertFulaInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub wallet_account: String,
     pub amount: Balance,

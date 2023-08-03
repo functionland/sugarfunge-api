@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RegisterInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub class_id: ClassId,
     pub metadata: serde_json::Value,
@@ -16,6 +17,7 @@ pub struct RegisterOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub class_id: ClassId,
     pub owners: Vec<Account>,
@@ -32,6 +34,7 @@ pub struct CreateOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SweepInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub bag: Account,
     pub to: Account,
@@ -46,6 +49,7 @@ pub struct SweepOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DepositInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub bag: Account,
     pub class_ids: Vec<ClassId>,

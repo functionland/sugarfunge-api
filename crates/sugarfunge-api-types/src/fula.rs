@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct VerifyManifestsInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
 }
 
@@ -19,6 +20,7 @@ pub struct VerifyManifestsOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UploadManifestInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub manifest_metadata: serde_json::Value,
     pub cid: Cid,
@@ -38,6 +40,7 @@ pub struct UploadManifestOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BatchUploadManifestInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub manifest_metadata: Vec<serde_json::Value>,
     pub cid: Vec<Cid>,
@@ -56,6 +59,7 @@ pub struct BatchUploadManifestOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateManifestInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub cid: Cid,
     pub pool_id: PoolId,
@@ -78,6 +82,7 @@ pub struct UpdatedManifestOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct StorageManifestInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub cid: Cid,
     pub pool_id: PoolId,
@@ -94,6 +99,7 @@ pub struct StorageManifestOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BatchStorageManifestInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub pool_id: PoolId,
     pub cid: Vec<Cid>,
@@ -110,6 +116,7 @@ pub struct BatchStorageManifestOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RemoveManifestInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub cid: Cid,
     pub pool_id: PoolId,
@@ -125,6 +132,7 @@ pub struct RemoveManifestOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BatchRemoveManifestInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub pool_id: Vec<PoolId>,
     pub cid: Vec<Cid>,
@@ -140,6 +148,7 @@ pub struct BatchRemoveManifestOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RemoveStoringManifestInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub cid: Cid,
     pub pool_id: PoolId,
@@ -155,6 +164,7 @@ pub struct RemoveStoringManifestOutput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BatchRemoveStoringManifestInput {
+    // SBP-M1 review: remove seed
     pub seed: Seed,
     pub pool_id: PoolId,
     pub cid: Vec<Cid>,
