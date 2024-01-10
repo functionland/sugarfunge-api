@@ -1,4 +1,4 @@
-FROM rust:1.70.0 AS builder
+FROM rust:1.74.0 AS builder
 
 WORKDIR /sugarfunge-api
 
