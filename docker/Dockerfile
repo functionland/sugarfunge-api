@@ -1,6 +1,9 @@
 # Builder stage
 FROM rust:1.74.0 AS builder
 
+# Install OpenSSL
+RUN apt-get update && apt-get install -y openssl libssl-dev
+
 WORKDIR /sugarfunge-api
 
 COPY . /sugarfunge-api
