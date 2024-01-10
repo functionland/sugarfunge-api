@@ -1,54 +1,24 @@
-name: DockerBuildPush
+# Builder stage
+FROM rust:1.74.0 AS builder
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [ main ]
-jobs:
-    build-arm64:
-        runs-on: [self-hosted, linux, ARM64]
-        steps:
-        - uses: actions/checkout@v3
-        - name: Login to DockerHub
-          uses: docker/login-action@v2
-          with:
-            username: ${{ secrets.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_ORG_TOKEN }}
-        - name: Build and push
-          uses: docker/build-push-action@v3
-          with:
-            context: ./
-            file: ./docker/Dockerfile
-            push: true
-            tags: ${{ secrets.DOCKERHUB_USERNAME }}/sugarfunge-api:arm64-latest
-    build-amd64:
-        runs-on: ubuntu-latest
-        steps:
-        - uses: actions/checkout@v3
-        - name: Login to DockerHub
-          uses: docker/login-action@v2
-          with:
-            username: ${{ secrets.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_ORG_TOKEN }}
-        - name: Build and push
-          uses: docker/build-push-action@v3
-          with:
-            context: ./
-            file: ./docker/Dockerfile
-            push: true
-            tags: ${{ secrets.DOCKERHUB_USERNAME }}/sugarfunge-api:amd64-latest
-    manifest:
-        needs: [build-arm64, build-amd64]
-        runs-on: ubuntu-latest
-        steps:
-          - name: Login to DockerHub
-            uses: docker/login-action@v2
-            with:
-              username: ${{ secrets.DOCKERHUB_USERNAME }}
-              password: ${{ secrets.DOCKERHUB_ORG_TOKEN }}
-          - name: Create and Push manifest
-            run: |
-              docker manifest create ${{ secrets.DOCKERHUB_USERNAME }}/sugarfunge-api:latest \
-              --amend ${{ secrets.DOCKERHUB_USERNAME }}/sugarfunge-api:amd64-latest \
-              --amend ${{ secrets.DOCKERHUB_USERNAME }}/sugarfunge-api:arm64-latest
-              docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/sugarfunge-api:latest
+# Install OpenSSL
+RUN apt-get update && apt-get install -y openssl libssl-dev
+
+WORKDIR /sugarfunge-api
+
+COPY . /sugarfunge-api
+
+RUN cargo build --locked --release
+
+# Find the libssl.so.3 library and copy it to a known location
+RUN ldd /sugarfunge-api/target/release/sugarfunge-api | grep libssl.so.3 | awk '{print $3}' | xargs -I {} cp {} /libssl.so.3
+
+# Final stage
+FROM gcr.io/distroless/cc-debian11
+
+COPY --from=builder /sugarfunge-api/target/release/sugarfunge-api /
+
+# Copy the libssl.so.3 file from the known location in the builder stage
+COPY --from=builder /libssl.so.3 /lib/
+
+ENTRYPOINT ["/sugarfunge-api"]
