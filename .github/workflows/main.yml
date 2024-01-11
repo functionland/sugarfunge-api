@@ -52,3 +52,31 @@ jobs:
               --amend ${{ secrets.DOCKERHUB_USERNAME }}/sugarfunge-api:amd64-latest \
               --amend ${{ secrets.DOCKERHUB_USERNAME }}/sugarfunge-api:arm64-latest
               docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/sugarfunge-api:latest
+    test-image:
+      needs: [build-amd64]
+      runs-on: ubuntu-latest
+      steps:
+        - name: Login to DockerHub
+          uses: docker/login-action@v2
+          with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_ORG_TOKEN }}
+  
+        - name: Pull Docker Image (AMD64)
+          run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sugarfunge-api:amd64-latest
+  
+        - name: Run Docker Image
+          run: docker run --rm -d --name sugarfunge_api_test ${{ secrets.DOCKERHUB_USERNAME }}/sugarfunge-api:amd64-latest
+  
+        - name: Check if Docker Container is Running
+          run: |
+            if docker ps | grep -q sugarfunge_api_test; then
+              echo "Container is running successfully."
+            else
+              echo "Error: Container failed to start."
+              exit 1
+            fi
+  
+        - name: Stop Docker Container
+          if: always()
+          run: docker stop sugarfunge_api_test
