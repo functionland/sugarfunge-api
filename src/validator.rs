@@ -4,12 +4,14 @@ use crate::state::*;
 use crate::util::*;
 use actix_web::{error, web, HttpResponse};
 use serde_json::json;
+// TO DO: Here is using the exporting from the dependencies like in the sugarfunge-node is done
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{sr25519, Pair, Public};
 use subxt::tx::PairSigner;
 use sugarfunge_api_types::primitives::*;
 use sugarfunge_api_types::sugarfunge;
+// TO DO: Here is the exported of the session keys type needed for the set_keys function
 use sugarfunge_api_types::sugarfunge::runtime_types::sugarfunge_runtime::opaque::SessionKeys;
 use sugarfunge_api_types::validator::*;
 
@@ -113,11 +115,13 @@ pub async fn set_keys(
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
 
+    // TO DO: Here the types converted are not the ones expected, but if you check the sugarfunge-node it is executed like this and it works
     let aura = get_from_seed::<AuraId>(&req.aura.as_str());
     let grandpa = get_from_seed::<GrandpaId>(&req.grandpa.as_str());
 
     let api = &data.api;
 
+    // TO DO: Here is where the error happens because the types are not the ones expected, if you try to use .into() it requires to create a Into<> function maybe that is the best approach
     let session_keys = SessionKeys { aura, grandpa };
 
     let call = sugarfunge::tx()
