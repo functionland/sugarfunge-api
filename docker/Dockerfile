@@ -16,7 +16,7 @@ RUN ldd /sugarfunge-api/target/release/sugarfunge-api | grep libcrypto.so.3 | aw
 RUN ldd /sugarfunge-api/target/release/sugarfunge-api | grep libgcc_s.so.1 | awk '{print $3}' | xargs -I {} cp {} /libgcc_s.so.1
 
 # Final stage
-FROM gcr.io/distroless/base-debian11
+FROM gcr.io/distroless/base-debian12
 
 COPY --from=builder /sugarfunge-api/target/release/sugarfunge-api /
 
