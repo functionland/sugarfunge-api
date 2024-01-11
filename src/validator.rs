@@ -116,12 +116,15 @@ pub async fn set_keys(
     let signer = PairSigner::new(pair);
 
     // TO DO: Here the types converted are not the ones expected, but if you check the sugarfunge-node it is executed like this and it works
-    let aura = get_from_seed::<AuraId>(&req.aura.as_str());
-    let grandpa = get_from_seed::<GrandpaId>(&req.grandpa.as_str());
+    let aura = sp_core::sr25519::Public::from_str(req.aura.as_str()).map_err(map_account_err)?;
+    let grandpa = sp_core::sr25519::Public::from_str(req.grandpa.as_str()).map_err(map_account_err)?;
 
     let api = &data.api;
 
-    // TO DO: Here is where the error happens because the types are not the ones expected, if you try to use .into() it requires to create a Into<> function maybe that is the best approach
+    let aura: sugarfunge_api_types::sugarfunge::runtime_types::sp_consensus_aura::sr25519::app_sr25519::Public = unsafe { std::mem::transmute(aura) };
+    let grandpa: sugarfunge_api_types::sugarfunge::runtime_types::sp_consensus_grandpa::app::Public = unsafe { std::mem::transmute(grandpa) };
+
+    // TODO: Here is where the error happens because the types are not the ones expected, if you try to use .into() it requires to create a Into<> function maybe that is the best approach
     let session_keys = SessionKeys { aura, grandpa };
 
     let call = sugarfunge::tx()
@@ -137,7 +140,7 @@ pub async fn set_keys(
         .await
         .map_err(map_sf_err)?;
     Ok(HttpResponse::Ok().json(SetKeysOutput {
-        aura: req.aura,
-        grandpa: req.grandpa,
+        aura: req.aura.clone(),
+        grandpa: req.grandpa.clone(),
     }))
 }
