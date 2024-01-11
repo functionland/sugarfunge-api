@@ -88,6 +88,7 @@ async fn main() -> std::io::Result<()> {
                 "validator/add_validator",
                 web::post().to(validator::add_validator),
             )
+            .route("validator/set_keys", web::post().to(validator::set_keys))
             .route(
                 "validator/remove_validator",
                 web::post().to(validator::remove_validator),
