@@ -40,6 +40,10 @@ tokio = { default-features = false, features = [
     "time",
     "rt-multi-thread",
 ], version = "1" }
+sp-consensus-aura = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.43" }
+sp-consensus-grandpa = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43" }
+
+
 
 [dependencies.subxt]
 git = "https://github.com/paritytech/subxt.git"
