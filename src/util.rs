@@ -4,9 +4,9 @@ use derive_more::Display;
 use dotenv::dotenv;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use subxt::error::DispatchError;
 use subxt::ext::sp_core::sr25519::Pair as Sr25519Pair;
 use subxt::ext::sp_core::Pair;
-use subxt::error::DispatchError;
 use sugarfunge_api_types::primitives::*;
 use sugarfunge_api_types::sugarfunge::{self};
 use url::Url;
@@ -91,7 +91,7 @@ pub fn get_pair_from_seed(seed: &Seed) -> error::Result<Sr25519Pair> {
     })
 }
 
-pub fn url_to_string(url: Url) -> String {
+pub fn _url_to_string(url: Url) -> String {
     let mut res = url.to_string();
     match (url.port(), url.port_or_known_default()) {
         (None, Some(port)) => {

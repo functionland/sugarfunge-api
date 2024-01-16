@@ -5,9 +5,6 @@ use crate::util::*;
 use actix_web::{error, web, HttpResponse};
 use serde_json::json;
 // TO DO: Here is using the exporting from the dependencies like in the sugarfunge-node is done
-use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_consensus_grandpa::AuthorityId as GrandpaId;
-use sp_core::{sr25519, Pair, Public};
 use subxt::tx::PairSigner;
 use sugarfunge_api_types::primitives::*;
 use sugarfunge_api_types::sugarfunge;
@@ -15,19 +12,14 @@ use sugarfunge_api_types::sugarfunge;
 use sugarfunge_api_types::sugarfunge::runtime_types::sugarfunge_runtime::opaque::SessionKeys;
 use sugarfunge_api_types::validator::*;
 
-pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
-    TPublic::Pair::from_string(&format!("{}", seed), None)
-        .expect("static values are valid; qed")
-        .public()
-}
-
 pub async fn add_validator(
     data: web::Data<AppState>,
     req: web::Json<AddValidatorInput>,
 ) -> error::Result<HttpResponse> {
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
-    let validator_public = sp_core::sr25519::Public::from_str(req.validator_id.as_str()).map_err(map_account_err)?;
+    let validator_public =
+        sp_core::sr25519::Public::from_str(req.validator_id.as_str()).map_err(map_account_err)?;
     let validator_bytes: [u8; 32] = validator_public.0; // Convert Public key to a byte array
     let validator_id = subxt::utils::AccountId32::from(validator_bytes); // Create AccountId32 from the byte array
     let call = sugarfunge::runtime_types::sugarfunge_validator_set::pallet::Call::add_validator {
@@ -68,13 +60,13 @@ pub async fn remove_validator(
 ) -> error::Result<HttpResponse> {
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
-    let validator_public = sp_core::sr25519::Public::from_str(req.validator_id.as_str()).map_err(map_account_err)?;
+    let validator_public =
+        sp_core::sr25519::Public::from_str(req.validator_id.as_str()).map_err(map_account_err)?;
     let validator_bytes: [u8; 32] = validator_public.0; // Convert Public key to a byte array
 
     // You'll need to replace this with the correct method from your specific Substrate framework
     // This is just a placeholder and might not be correct for your setup
     let validator_id = subxt::utils::AccountId32::from(validator_bytes); // Attempt to create AccountId32 from the byte array
-
 
     let call =
         sugarfunge::runtime_types::sugarfunge_validator_set::pallet::Call::remove_validator {
@@ -117,7 +109,8 @@ pub async fn set_keys(
 
     // TO DO: Here the types converted are not the ones expected, but if you check the sugarfunge-node it is executed like this and it works
     let aura = sp_core::sr25519::Public::from_str(req.aura.as_str()).map_err(map_account_err)?;
-    let grandpa = sp_core::sr25519::Public::from_str(req.grandpa.as_str()).map_err(map_account_err)?;
+    let grandpa =
+        sp_core::sr25519::Public::from_str(req.grandpa.as_str()).map_err(map_account_err)?;
 
     let api = &data.api;
 
@@ -131,7 +124,7 @@ pub async fn set_keys(
         .session()
         .set_keys(session_keys, "0x".into());
 
-    let result = api
+    let _result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
         .await

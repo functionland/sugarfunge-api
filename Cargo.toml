@@ -12,6 +12,7 @@ std = ["codec/std", "scale-info/std"]
 
 [dependencies]
 sugarfunge-api-types = { path = "crates/sugarfunge-api-types" }
+contract-api-types = {git = "https://github.com/functionland/fula-contract-api.git", rev = "3d295815686d58eb2672f19614842f5c1d0fa1d0"}
 env_logger = "0.10.0"
 log = "0.4"
 clap = { version = "4.3.0", features = ["derive"] }

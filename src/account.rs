@@ -1,11 +1,12 @@
 use crate::state::*;
 use crate::util::*;
 use actix_web::{error, web, HttpRequest, HttpResponse};
+use contract_api_types::calls::RefundInput;
 use rand::prelude::*;
 use serde_json::json;
+use subxt::ext::sp_core::sr25519::Public as SubxtPublic;
 use subxt::ext::sp_core::Pair;
 use subxt::ext::sp_runtime::traits::IdentifyAccount;
-use subxt::ext::sp_core::sr25519::Public as SubxtPublic;
 use subxt::tx::PairSigner;
 use sugarfunge_api_types::account::*;
 use sugarfunge_api_types::primitives::*;
@@ -41,7 +42,7 @@ pub async fn fund(
     data: web::Data<AppState>,
     req: web::Json<FundAccountInput>,
 ) -> error::Result<HttpResponse> {
-    let pair = get_pair_from_seed(&req.seed).unwrap();  // Assuming get_pair_from_seed now returns the correct type
+    let pair = get_pair_from_seed(&req.seed).unwrap(); // Assuming get_pair_from_seed now returns the correct type
     let signer = PairSigner::new(pair);
     let account = subxt::utils::AccountId32::try_from(&req.to).map_err(map_account_err)?;
     let account = subxt::utils::MultiAddress::Id(account);
@@ -125,24 +126,16 @@ pub async fn exists(
     }
 }
 
-pub async fn refund_fees(data: web::Data<AppState>, seed: &Seed) -> error::Result<HttpResponse> {
-    let result: Result<Refund, _> = request("refund", ()).await;
+pub async fn refund_fees(seed: &Seed) -> error::Result<HttpResponse> {
+    let result: Result<Refund, _> = request(
+        "refund",
+        RefundInput {
+            account: format!("{}", get_pair_from_seed(seed)?.public().into_account()),
+        },
+    )
+    .await;
     match result {
-        Ok(event) => {
-            let result_fund = fund(
-                data,
-                web::Json(FundAccountInput {
-                    seed: Seed::from(event.seed.clone()),
-                    to: Account::from(format!(
-                        "{}",
-                        get_pair_from_seed(seed)?.public().into_account()
-                    )),
-                    amount: Balance::from(event.amount),
-                }),
-            )
-            .await;
-            result_fund
-        }
+        Ok(event) => Ok(HttpResponse::Ok().json(event)),
         Err(_) => Ok(HttpResponse::BadRequest().json(RequestError {
             message: json!("Failed to execute the refund fees"),
             description: format!(""),

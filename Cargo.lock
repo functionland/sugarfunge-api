@@ -1390,6 +1390,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd7e35aee659887cbfb97aaf227ac12cad1a9d7c71e55ff3376839ed4e282d08"
 
 [[package]]
+name = "contract-api-types"
+version = "0.1.0"
+source = "git+https://github.com/functionland/fula-contract-api.git?rev=3d295815686d58eb2672f19614842f5c1d0fa1d0#3d295815686d58eb2672f19614842f5c1d0fa1d0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "contract-integration"
 version = "0.1.0"
 source = "git+https://github.com/SugarFunge/contract-integration?branch=master#453cd9cdaca5cc249c27749907d2b2e263903548"
@@ -6171,6 +6180,7 @@ dependencies = [
  "actix-web",
  "actix-web-actors",
  "clap",
+ "contract-api-types",
  "contract-integration",
  "crossbeam",
  "derive_more",

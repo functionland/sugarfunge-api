@@ -3,9 +3,10 @@ use crate::state::*;
 use crate::util::*;
 use actix_web::{error, web, HttpResponse};
 use codec::Decode;
+use futures::stream::StreamExt;
 use serde_json::json;
-use std::str::FromStr;
 use sp_core::sr25519::Public;
+use std::str::FromStr;
 use subxt::tx::PairSigner;
 use subxt::utils::AccountId32;
 use sugarfunge_api_types::fula::*;
@@ -18,7 +19,6 @@ use sugarfunge_api_types::sugarfunge::runtime_types::functionland_fula::{
     ManifestWithPoolId as ManifestWithPoolIdRuntime, StorerData as StorerDataRuntime,
     UploaderData as UploaderDataRuntime,
 };
-use futures::stream::StreamExt;
 
 pub async fn upload_manifest(
     data: web::Data<AppState>,
@@ -52,7 +52,7 @@ pub async fn upload_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::ManifestOutput>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(data, &req.seed.clone()).await {
+    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
         return Err(value_error);
     }
     match result {
@@ -103,7 +103,7 @@ pub async fn batch_upload_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::BatchManifestOutput>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(data, &req.seed.clone()).await {
+    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
         return Err(value_error);
     }
     match result {
@@ -145,7 +145,7 @@ pub async fn storage_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::StorageManifestOutput>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(data, &req.seed.clone()).await {
+    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
         return Err(value_error);
     }
     match result {
@@ -187,7 +187,7 @@ pub async fn batch_storage_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::BatchStorageManifestOutput>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(data, &req.seed.clone()).await {
+    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
         return Err(value_error);
     }
     match result {
@@ -228,7 +228,7 @@ pub async fn remove_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::ManifestRemoved>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(data, &req.seed.clone()).await {
+    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
         return Err(value_error);
     }
     match result {
@@ -271,7 +271,7 @@ pub async fn batch_remove_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::BatchManifestRemoved>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(data, &req.seed.clone()).await {
+    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
         return Err(value_error);
     }
     match result {
@@ -314,7 +314,7 @@ pub async fn remove_stored_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::RemoveStorerOutput>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(data, &req.seed.clone()).await {
+    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
         return Err(value_error);
     }
     match result {
@@ -356,7 +356,7 @@ pub async fn batch_remove_stored_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::BatchRemoveStorerOutput>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(data, &req.seed.clone()).await {
+    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
         return Err(value_error);
     }
     match result {
@@ -394,7 +394,7 @@ pub async fn verify_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::VerifiedStorerManifests>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(data, &req.seed.clone()).await {
+    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
         return Err(value_error);
     }
     match result {
@@ -440,7 +440,7 @@ pub async fn update_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::ManifestStorageUpdated>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(data, &req.seed.clone()).await {
+    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
         return Err(value_error);
     }
     match result {
@@ -466,36 +466,36 @@ pub async fn get_all_manifests(
     let api = &data.api;
     let mut result_array = Vec::new();
 
-    let query_key:Vec<u8>; 
+    let query_key: Vec<u8>;
     // println!("query_key manifests_root len: {}", query_key.len());
 
     if let Some(value) = req.pool_id.clone() {
         let key_value: u32 = value.into();
         query_key = sugarfunge::storage()
-        .fula()
-        .manifests_iter1(key_value)
-        .to_root_bytes();
+            .fula()
+            .manifests_iter1(key_value)
+            .to_root_bytes();
     } else {
         query_key = sugarfunge::storage()
-        .fula()
-        .manifests_iter()
-        .to_root_bytes();
+            .fula()
+            .manifests_iter()
+            .to_root_bytes();
     }
     // println!("query_key account_to len: {}", query_key.len());
 
     let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
 
-    let keys_stream  = storage
+    let keys_stream = storage
         .fetch_raw_keys(query_key)
         .await
         .map_err(map_subxt_err)?;
 
     let keys: Vec<Vec<u8>> = keys_stream
-        .collect::<Vec<_>>()  // Collect into a Vec<Result<Vec<u8>, Error>>
-        .await                // Await the collection process
-        .into_iter()          // Convert into an iterator
+        .collect::<Vec<_>>() // Collect into a Vec<Result<Vec<u8>, Error>>
+        .await // Await the collection process
+        .into_iter() // Convert into an iterator
         .filter_map(Result::ok) // Filter out Ok values, ignore errors
-        .collect();           // Collect into a Vec<Vec<u8>>
+        .collect(); // Collect into a Vec<Vec<u8>>
 
     // println!("Obtained keys:");
     for key in keys.iter() {
@@ -507,7 +507,11 @@ pub async fn get_all_manifests(
         let pool_id_id = u32::decode(&mut &pool_id_key[..]);
         let pool_id = pool_id_id.unwrap();
 
-        if let Some(storage_data) = storage.fetch_raw(key.clone()).await.map_err(map_subxt_err)? {
+        if let Some(storage_data) = storage
+            .fetch_raw(key.clone())
+            .await
+            .map_err(map_subxt_err)?
+        {
             let value = ManifestRuntime::<AccountId32, Vec<u8>>::decode(&mut &storage_data[..]);
             let value = value.unwrap();
 
@@ -557,35 +561,35 @@ pub async fn get_available_manifests(
     let api = &data.api;
     let mut result_array = Vec::new();
 
-    let query_key:Vec<u8>;
+    let query_key: Vec<u8>;
     // println!("query_key manifests_root len: {}", query_key.len());
 
     if let Some(value) = req.pool_id.clone() {
         let key_value: u32 = value.into();
         query_key = sugarfunge::storage()
-        .fula()
-        .manifests_iter1(key_value)
-        .to_root_bytes();
+            .fula()
+            .manifests_iter1(key_value)
+            .to_root_bytes();
     } else {
         query_key = sugarfunge::storage()
-        .fula()
-        .manifests_iter()
-        .to_root_bytes();
+            .fula()
+            .manifests_iter()
+            .to_root_bytes();
     }
 
     let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
 
-    let keys_stream  = storage
+    let keys_stream = storage
         .fetch_raw_keys(query_key)
         .await
         .map_err(map_subxt_err)?;
 
     let keys: Vec<Vec<u8>> = keys_stream
-        .collect::<Vec<_>>()  // Collect into a Vec<Result<Vec<u8>, Error>>
-        .await                // Await the collection process
-        .into_iter()          // Convert into an iterator
+        .collect::<Vec<_>>() // Collect into a Vec<Result<Vec<u8>, Error>>
+        .await // Await the collection process
+        .into_iter() // Convert into an iterator
         .filter_map(Result::ok) // Filter out Ok values, ignore errors
-        .collect();           // Collect into a Vec<Vec<u8>>
+        .collect(); // Collect into a Vec<Vec<u8>>
 
     // println!("Obtained keys:");
     for key in keys.iter() {
@@ -595,7 +599,11 @@ pub async fn get_available_manifests(
         let pool_id_id = u32::decode(&mut &pool_id_key[..]);
         let pool_id = pool_id_id.unwrap();
 
-        if let Some(storage_data) = storage.fetch_raw(key.clone()).await.map_err(map_subxt_err)? {
+        if let Some(storage_data) = storage
+            .fetch_raw(key.clone())
+            .await
+            .map_err(map_subxt_err)?
+        {
             let value = ManifestRuntime::<AccountId32, Vec<u8>>::decode(&mut &storage_data[..]);
             let value = value.unwrap();
 
@@ -623,36 +631,36 @@ pub async fn get_all_manifests_storer_data(
     let api = &data.api;
     let mut result_array = Vec::new();
 
-    let query_key:Vec<u8>;
+    let query_key: Vec<u8>;
     // println!("query_key manifests_root len: {}", query_key.len());
 
     if let Some(value) = req.pool_id.clone() {
         let key_value: u32 = value.into();
         query_key = sugarfunge::storage()
-        .fula()
-        .manifests_storer_data_iter1(key_value)
-        .to_root_bytes();
+            .fula()
+            .manifests_storer_data_iter1(key_value)
+            .to_root_bytes();
         // println!("query_key pool_id len: {}", query_key.len());
     } else {
         query_key = sugarfunge::storage()
-        .fula()
-        .manifests_storer_data_iter()
-        .to_root_bytes();
+            .fula()
+            .manifests_storer_data_iter()
+            .to_root_bytes();
     }
 
     let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
 
-    let keys_stream  = storage
+    let keys_stream = storage
         .fetch_raw_keys(query_key)
         .await
         .map_err(map_subxt_err)?;
 
     let keys: Vec<Vec<u8>> = keys_stream
-        .collect::<Vec<_>>()  // Collect into a Vec<Result<Vec<u8>, Error>>
-        .await                // Await the collection process
-        .into_iter()          // Convert into an iterator
+        .collect::<Vec<_>>() // Collect into a Vec<Result<Vec<u8>, Error>>
+        .await // Await the collection process
+        .into_iter() // Convert into an iterator
         .filter_map(Result::ok) // Filter out Ok values, ignore errors
-        .collect();           // Collect into a Vec<Vec<u8>>
+        .collect(); // Collect into a Vec<Vec<u8>>
 
     // println!("Obtained keys:");
     for key in keys.iter() {
@@ -677,29 +685,35 @@ pub async fn get_all_manifests_storer_data(
         let cid_id = cid_id.unwrap();
         // println!("cid_id: {:?}", cid_id);
 
-        if let Some(storage_data) = storage.fetch_raw(key.clone()).await.map_err(map_subxt_err)? {
+        if let Some(storage_data) = storage
+            .fetch_raw(key.clone())
+            .await
+            .map_err(map_subxt_err)?
+        {
             let value = ManifestStorageDataRuntime::decode(&mut &storage_data[..]);
             let manifest_value = value.unwrap();
 
             if let Some(uploader_filter) = req.storer.clone() {
                 // Parse the string into a public key
-                let uploader_public_key = Public::from_str(&account_id.as_str()).map_err(map_account_err)?;
-                let uploader_filter_public_key = Public::from_str(&uploader_filter.as_str()).map_err(map_account_err)?;
-                
+                let uploader_public_key =
+                    Public::from_str(&account_id.as_str()).map_err(map_account_err)?;
+                let uploader_filter_public_key =
+                    Public::from_str(&uploader_filter.as_str()).map_err(map_account_err)?;
+
                 // Convert the public keys into a byte array
                 let uploader_public_key_bytes: [u8; 32] = uploader_public_key.0;
                 let uploader_filter_public_key_bytes: [u8; 32] = uploader_filter_public_key.0;
-                
+
                 // Create AccountId32 from the byte arrays
                 let uploader_account_id = AccountId32::from(uploader_public_key_bytes);
-                let uploader_filter_account_id = AccountId32::from(uploader_filter_public_key_bytes);
-                
+                let uploader_filter_account_id =
+                    AccountId32::from(uploader_filter_public_key_bytes);
+
                 // Compare the account IDs
                 if uploader_account_id != uploader_filter_account_id {
                     meet_requirements = false;
                 }
             }
-            
 
             if meet_requirements {
                 result_array.push(ManifestStorageData {
@@ -878,7 +892,6 @@ pub fn verify_contains_storer(
     Ok(result)
 }
 
-
 pub fn verify_contains_uploader(
     uploaders: Vec<UploaderData>,
     account: Account,
@@ -892,7 +905,8 @@ pub fn verify_contains_uploader(
 
     for user_data in uploaders.iter() {
         // Convert the uploader string to a Public key and then to a byte array
-        let uploader_public = Public::from_str(&user_data.uploader.as_str()).map_err(map_account_err)?;
+        let uploader_public =
+            Public::from_str(&user_data.uploader.as_str()).map_err(map_account_err)?;
         let uploader_public_bytes: [u8; 32] = uploader_public.0;
         let uploader_account_id = AccountId32::from(uploader_public_bytes);
 
@@ -903,7 +917,6 @@ pub fn verify_contains_uploader(
     }
     Ok(result)
 }
-
 
 pub fn get_vec_cids_from_input(cids: Vec<Cid>) -> Vec<BoundedVec<u8>> {
     return cids

@@ -9,8 +9,8 @@ use contract_integration::types::ReceiptOutput;
 use dotenv::dotenv;
 use hex::ToHex;
 use serde_json::json;
-use subxt::ext::sp_core::Pair;
 use sp_runtime::traits::IdentifyAccount;
+use subxt::ext::sp_core::Pair;
 use subxt::tx::PairSigner;
 use subxt::utils::AccountId32;
 use sugarfunge_api_types::contract::*;
@@ -62,10 +62,6 @@ pub async fn convert_to_fula_call(
     // Convert the 32-byte array account ID to AccountId32
     let account_from = AccountId32::from(account_id_bytes); // AccountId32 can be directly created from a 32-byte array
     let account_to = account_from.clone(); // Cloning account_from for account_to
-
-    
-
-
 
     // Create the bundle schema
 
@@ -131,7 +127,7 @@ pub async fn convert_to_fula_call(
         let result = result
             .find_first::<sugarfunge::bundle::events::Mint>()
             .map_err(map_subxt_err)?;
-        if let Err(value_error) = account::refund_fees(data, &req.seed.clone()).await {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
             return Err(value_error);
         }
         match result {
