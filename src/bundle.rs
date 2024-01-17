@@ -222,13 +222,43 @@ pub async fn get_bundles_id(data: web::Data<AppState>) -> error::Result<HttpResp
     }))
 }
 
+fn fold_hash_to_u64(hash_bytes: &[u8]) -> Result<u64, std::array::TryFromSliceError> {
+    let folded_hash = hash_bytes
+        .chunks(8)
+        .fold([0u8; 8], |acc, chunk| {
+            let mut folded = acc;
+            for (i, &byte) in chunk.iter().enumerate() {
+                folded[i % 8] ^= byte;
+            }
+            folded
+        });
+    Ok(u64::from_be_bytes(folded_hash.try_into()?))
+}
+
 pub async fn verify_bundle_exist(
     data: &web::Data<AppState>,
     bundle_id_value: BundleId,
 ) -> Result<bool, Error> {
     let api = &data.api;
-    let bundle_id_u64 = bundle_id_value.to_u64()
-    .map_err(|e| actix_web::error::ErrorBadRequest(format!("Invalid bundle ID: {}", e)))?;
+    let bundle_id_u64: u64;  // Declare the variable outside the match block
+
+    let bundle_id_str = bundle_id_value.to_string(); // Assuming BundleId can be converted to String
+    let bundle_id_bytes = match hex::decode(&bundle_id_str) {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            println!("Failed to decode BundleId: {}", e);
+            return Ok(false);
+        },
+    };
+    match fold_hash_to_u64(&bundle_id_bytes) {
+        Ok(value) => {
+            bundle_id_u64 = value;  // Assign the value here
+        },
+        Err(e) => {
+            println!("Error: {}", e);
+            return Ok(false);
+        },
+    };
 
 
     let query_key = sugarfunge::storage()
