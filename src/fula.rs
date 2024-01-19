@@ -1,4 +1,5 @@
 use crate::account;
+use crate::account::get_balance;
 use crate::state::*;
 use crate::util::*;
 use actix_web::{error, web, HttpResponse};
@@ -41,6 +42,8 @@ pub async fn upload_manifest(
         req.replication_factor.into(),
     );
 
+    let set_balance = get_balance(&req.seed).await;
+
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -52,9 +55,12 @@ pub async fn upload_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::ManifestOutput>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
+
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(UploadManifestOutput {
             uploader: event.uploader.into(),
@@ -92,6 +98,8 @@ pub async fn batch_upload_manifest(
         replication_factors,
     );
 
+    let set_balance = get_balance(&req.seed).await;
+
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -103,8 +111,10 @@ pub async fn batch_upload_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::BatchManifestOutput>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(BatchUploadManifestOutput {
@@ -134,6 +144,8 @@ pub async fn storage_manifest(
         .fula()
         .storage_manifest(cid, req.pool_id.into());
 
+    let set_balance = get_balance(&req.seed).await;
+
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -145,8 +157,10 @@ pub async fn storage_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::StorageManifestOutput>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(StorageManifestOutput {
@@ -176,6 +190,7 @@ pub async fn batch_storage_manifest(
         .fula()
         .batch_storage_manifest(cids, req.pool_id.into());
 
+    let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -187,8 +202,10 @@ pub async fn batch_storage_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::BatchStorageManifestOutput>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(BatchStorageManifestOutput {
@@ -217,6 +234,7 @@ pub async fn remove_manifest(
         .fula()
         .remove_manifest(cid, req.pool_id.into());
 
+    let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -228,8 +246,10 @@ pub async fn remove_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::ManifestRemoved>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(RemoveManifestOutput {
@@ -259,7 +279,7 @@ pub async fn batch_remove_manifest(
     let call = sugarfunge::tx()
         .fula()
         .batch_remove_manifest(cids, pool_ids);
-
+    let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -271,8 +291,10 @@ pub async fn batch_remove_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::BatchManifestRemoved>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(BatchRemoveManifestOutput {
@@ -302,7 +324,7 @@ pub async fn remove_stored_manifest(
     let call = sugarfunge::tx()
         .fula()
         .remove_stored_manifest(cid, req.pool_id.into());
-
+    let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -314,8 +336,10 @@ pub async fn remove_stored_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::RemoveStorerOutput>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(RemoveStoringManifestOutput {
@@ -344,7 +368,7 @@ pub async fn batch_remove_stored_manifest(
     let call = sugarfunge::tx()
         .fula()
         .batch_remove_stored_manifest(cids, req.pool_id.into());
-
+    let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -356,8 +380,10 @@ pub async fn batch_remove_stored_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::BatchRemoveStorerOutput>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(BatchRemoveStoringManifestOutput {
@@ -382,7 +408,7 @@ pub async fn verify_manifest(
     let api = &data.api;
 
     let call = sugarfunge::tx().fula().verify_manifests();
-
+    let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -394,8 +420,10 @@ pub async fn verify_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::VerifiedStorerManifests>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(VerifyManifestsOutput {
@@ -428,7 +456,7 @@ pub async fn update_manifest(
         req.missed_cycles,
         req.active_days,
     );
-
+    let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -440,8 +468,10 @@ pub async fn update_manifest(
     let result = result
         .find_first::<sugarfunge::fula::events::ManifestStorageUpdated>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(UpdatedManifestOutput {

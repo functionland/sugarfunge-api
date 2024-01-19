@@ -1,4 +1,5 @@
 use crate::account;
+use crate::account::get_balance;
 use crate::bundle::*;
 use crate::config;
 use crate::state::AppState;
@@ -84,6 +85,8 @@ pub async fn convert_to_fula_call(
     // Verify if the Bundle_id exist
     // println!("2. VERIFYING IF THE BUNDLE ID EXIST");
 
+    let set_balance = get_balance(&req.seed).await;
+
     if let Ok(verification) = verify_bundle_exist(&data, bundle_id.encode_hex()).await {
         // If it doesn't exist, register the bundle
         if !verification {
@@ -127,14 +130,16 @@ pub async fn convert_to_fula_call(
         let result = result
             .find_first::<sugarfunge::bundle::events::Mint>()
             .map_err(map_subxt_err)?;
-        if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-            return Err(value_error);
+        if let Some(balance) = set_balance {
+            if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+                return Err(value_error);
+            }
         }
         match result {
             Some(_) => {
                 // If the bundle mint is successful, execute the contract mint
                 // println!("6. BUNDLE MINTED SUCCESSFULLY");
-                let result: Result<ReceiptOutput, _> = request(
+                let result: Result<ReceiptOutput, _> = fula_contract_req(
                     route,
                     ContractTransactionInput {
                         account_address: String::from(req.wallet_account.as_str()),

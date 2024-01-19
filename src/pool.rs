@@ -1,4 +1,5 @@
 use crate::account;
+use crate::account::get_balance;
 use crate::state::*;
 use crate::util::*;
 use actix_web::{error, web, HttpResponse};
@@ -36,7 +37,7 @@ pub async fn create_pool(
     let api = &data.api;
 
     let call = sugarfunge::tx().pool().create(pool_name, region, peer_id);
-
+    let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -48,8 +49,10 @@ pub async fn create_pool(
     let result = result
         .find_first::<sugarfunge::pool::events::PoolCreated>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(CreatePoolOutput {
@@ -73,7 +76,7 @@ pub async fn leave_pool(
     let api = &data.api;
 
     let call = sugarfunge::tx().pool().leave_pool(req.pool_id.into());
-
+    let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -85,8 +88,10 @@ pub async fn leave_pool(
     let result = result
         .find_first::<sugarfunge::pool::events::ParticipantLeft>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(LeavePoolOutput {
@@ -113,7 +118,7 @@ pub async fn join_pool(
     let api = &data.api;
 
     let call = sugarfunge::tx().pool().join(req.pool_id.into(), peer_id);
-
+    let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -125,8 +130,10 @@ pub async fn join_pool(
     let result = result
         .find_first::<sugarfunge::pool::events::JoinRequested>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(JoinPoolOutput {
@@ -150,7 +157,7 @@ pub async fn cancel_join_pool(
     let api = &data.api;
 
     let call = sugarfunge::tx().pool().cancel_join(req.pool_id.into());
-
+    let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -162,8 +169,10 @@ pub async fn cancel_join_pool(
     let result = result
         .find_first::<sugarfunge::pool::events::RequestWithdrawn>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(CancelJoinPoolOutput {
@@ -194,7 +203,7 @@ pub async fn vote(
     let call = sugarfunge::tx()
         .pool()
         .vote(req.pool_id.into(), account, req.vote_value, peer_id);
-
+    let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -206,8 +215,10 @@ pub async fn vote(
     let result = result
         .find_first::<sugarfunge::pool::events::VotingResult>()
         .map_err(map_subxt_err)?;
-    if let Err(value_error) = account::refund_fees(&req.seed.clone()).await {
-        return Err(value_error);
+    if let Some(balance) = set_balance {
+        if let Err(value_error) = account::refund_fees(&req.seed.clone(), balance).await {
+            return Err(value_error);
+        }
     }
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(VoteOutput {

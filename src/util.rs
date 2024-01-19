@@ -1,5 +1,7 @@
+use crate::Args;
 use crate::{config, state::AppState};
 use actix_web::{error, web, HttpResponse};
+use clap::Parser;
 use derive_more::Display;
 use dotenv::dotenv;
 use serde::{Deserialize, Serialize};
@@ -167,21 +169,17 @@ pub fn hash(s: &[u8]) -> sp_core::H256 {
     sp_io::hashing::blake2_256(s).into()
 }
 
-// Function to build the endpoints routes when executed the req function
-fn endpoint(cmd: &'static str) -> String {
-    dotenv().ok();
-    let env = config::init();
-    format!("{}/{}", env.fula_contract_api_host_and_port.as_str(), cmd)
+fn endpoint(host: String, cmd: &'static str) -> String {
+    format!("{}{}", host.as_str(), cmd)
 }
 
-// Function to create a request to the fula-contract-api, given the endpoint route and the inputs
-pub async fn request<'a, I, O>(cmd: &'static str, args: I) -> Result<O, RequestError>
+async fn req<'a, I, O>(host: String, cmd: &'static str, args: I) -> Result<O, RequestError>
 where
     I: Serialize,
     O: for<'de> Deserialize<'de>,
 {
     let sf_res = reqwest::Client::new()
-        .post(endpoint(cmd))
+        .post(endpoint(host, cmd))
         .json(&args)
         .send()
         .await;
@@ -211,4 +209,23 @@ where
             description: "Reqwest error.".into(),
         }),
     }
+}
+
+pub async fn fula_sugarfunge_req<'a, I, O>(cmd: &'static str, args: I) -> Result<O, RequestError>
+where
+    I: Serialize,
+    O: for<'de> Deserialize<'de>,
+{
+    let env = Args::parse();
+    req(env.listen.into(), cmd, args).await
+}
+
+pub async fn fula_contract_req<'a, I, O>(cmd: &'static str, args: I) -> Result<O, RequestError>
+where
+    I: Serialize,
+    O: for<'de> Deserialize<'de>,
+{
+    dotenv().ok();
+    let env = config::init();
+    req(env.fula_contract_api_host_and_port + "/", cmd, args).await
 }

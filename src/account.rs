@@ -101,6 +101,25 @@ pub async fn balance(
     }
 }
 
+pub async fn get_balance(seed: &Seed) -> Option<Balance> {
+    if let Ok(pair) = get_pair_from_seed(seed) {
+        let account: SubxtPublic = pair.public();
+        let account = account.into_account();
+
+        let result: Result<AccountBalanceOutput, _> = fula_sugarfunge_req(
+            "account/balance",
+            AccountBalanceInput {
+                account: Account::from(format!("{}", account)),
+            },
+        )
+        .await;
+        if let Ok(event) = result {
+            return Some(event.balance);
+        }
+    }
+    None
+}
+
 /// Check if account exists and is active
 pub async fn exists(
     data: web::Data<AppState>,
@@ -126,11 +145,12 @@ pub async fn exists(
     }
 }
 
-pub async fn refund_fees(seed: &Seed) -> error::Result<HttpResponse> {
-    let result: Result<Refund, _> = request(
+pub async fn refund_fees(seed: &Seed, balance: Balance) -> error::Result<HttpResponse> {
+    let result: Result<Refund, _> = fula_contract_req(
         "refund",
         RefundInput {
             account: format!("{}", get_pair_from_seed(seed)?.public().into_account()),
+            balance: balance.into(),
         },
     )
     .await;

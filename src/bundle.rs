@@ -242,7 +242,7 @@ pub async fn verify_bundle_exist(
     bundle_id_value: BundleId,
 ) -> Result<bool, Error> {
     let api = &data.api;
-    let bundle_id_u64: u64; // Declare the variable outside the match block
+    let _bundle_id_u64: u64; // Declare the variable outside the match block
 
     let bundle_id_str = bundle_id_value.to_string(); // Assuming BundleId can be converted to String
     let bundle_id_bytes = match hex::decode(&bundle_id_str) {
@@ -254,7 +254,7 @@ pub async fn verify_bundle_exist(
     };
     match fold_hash_to_u64(&bundle_id_bytes) {
         Ok(value) => {
-            bundle_id_u64 = value; // Assign the value here
+            _bundle_id_u64 = value; // Assign the value here
         }
         Err(e) => {
             println!("Error: {}", e);

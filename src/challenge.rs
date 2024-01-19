@@ -8,6 +8,7 @@ use crate::state::*;
 use crate::util::*;
 use actix_web::{error, web, HttpResponse};
 use codec::Decode;
+use futures::stream::StreamExt;
 use serde_json::json;
 use sp_core::sr25519::Public;
 use subxt::tx::PairSigner;
@@ -18,7 +19,6 @@ use sugarfunge_api_types::sugarfunge;
 use sugarfunge_api_types::sugarfunge::runtime_types::functionland_fula::{
     Challenge as ChallengeRuntime, ClaimData as ClaimRuntime, Manifest as ManifestRuntime,
 };
-use futures::stream::StreamExt;
 
 pub async fn generate_challenge(
     data: web::Data<AppState>,
@@ -26,11 +26,11 @@ pub async fn generate_challenge(
 ) -> error::Result<HttpResponse> {
     let pair = get_pair_from_seed(&req.seed.clone())?;
     let signer = PairSigner::new(pair);
-    log::info!("sugarfunge-api generate_challenge: started");
+    // log::info!("sugarfunge-api generate_challenge: started");
     let api = &data.api;
 
     let call = sugarfunge::tx().fula().generate_challenge();
-    log::info!("sugarfunge-api generate_challenge: call created");
+    // log::info!("sugarfunge-api generate_challenge: call created");
     let result = api
         .tx()
         .sign_and_submit_then_watch(&call, &signer, Default::default())
@@ -39,11 +39,11 @@ pub async fn generate_challenge(
         .wait_for_finalized_success()
         .await
         .map_err(map_fula_err)?;
-    log::info!("sugarfunge-api generate_challenge: result1: {:#?}", result);
+    // log::info!("sugarfunge-api generate_challenge: result1: {:#?}", result);
     let result = result
         .find_first::<sugarfunge::fula::events::Challenge>()
         .map_err(map_subxt_err)?;
-    log::info!("sugarfunge-api generate_challenge: result2: {:#?}", result);
+    // log::info!("sugarfunge-api generate_challenge: result2: {:#?}", result);
     match result {
         Some(event) => Ok(HttpResponse::Ok().json(GenerateChallengeOutput {
             challenger: event.challenger.into(),
@@ -161,23 +161,24 @@ pub async fn verify_pending_challenge(
 
     let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
 
-    let keys_stream  = storage
+    let keys_stream = storage
         .fetch_raw_keys(query_key)
         .await
         .map_err(map_subxt_err)?;
 
     let keys: Vec<Vec<u8>> = keys_stream
-        .collect::<Vec<_>>()  // Collect into a Vec<Result<Vec<u8>, Error>>
-        .await                // Await the collection process
-        .into_iter()          // Convert into an iterator
+        .collect::<Vec<_>>() // Collect into a Vec<Result<Vec<u8>, Error>>
+        .await // Await the collection process
+        .into_iter() // Convert into an iterator
         .filter_map(Result::ok) // Filter out Ok values, ignore errors
-        .collect();           // Collect into a Vec<Vec<u8>>
-    // println!("Obtained keys:");
+        .collect(); // Collect into a Vec<Vec<u8>>
+                    // println!("Obtained keys:");
     for key in keys.iter() {
         let account_idx = 48;
         let account_key_slice = &key.as_slice()[account_idx..(account_idx + 32)];
-        let account_id = AccountId32::from(<[u8; 32]>::try_from(account_key_slice)
-            .map_err(map_try_from_slice_err)?);
+        let account_id = AccountId32::from(
+            <[u8; 32]>::try_from(account_key_slice).map_err(map_try_from_slice_err)?,
+        );
 
         if account_id == requested_account_id {
             result = true;
@@ -212,11 +213,11 @@ pub async fn verify_file_size(
         .await
         .map_err(map_subxt_err)?;
     let keys: Vec<Vec<u8>> = keys_stream
-        .collect::<Vec<_>>()  // Collect into a Vec<Result<Vec<u8>, Error>>
-        .await                // Await the collection process
-        .into_iter()          // Convert into an iterator
+        .collect::<Vec<_>>() // Collect into a Vec<Result<Vec<u8>, Error>>
+        .await // Await the collection process
+        .into_iter() // Convert into an iterator
         .filter_map(Result::ok) // Filter out Ok values, ignore errors
-        .collect();           // Collect into a Vec<Vec<u8>>
+        .collect(); // Collect into a Vec<Vec<u8>>
 
     // println!("Obtained keys:");
     for key in keys.iter() {
@@ -226,7 +227,11 @@ pub async fn verify_file_size(
         let cid_id = cid_id.unwrap();
         // println!("cid_id: {:?}", cid_id);
 
-        if let Some(storage_data) = storage.fetch_raw(key.clone()).await.map_err(map_subxt_err)? {
+        if let Some(storage_data) = storage
+            .fetch_raw(key.clone())
+            .await
+            .map_err(map_subxt_err)?
+        {
             let value = ManifestRuntime::<AccountId32, Vec<u8>>::decode(&mut &storage_data[..]);
             let value = value.unwrap();
 
@@ -304,17 +309,17 @@ pub async fn get_challenges(data: web::Data<AppState>) -> error::Result<HttpResp
 
     let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
 
-    let keys_stream  = storage
+    let keys_stream = storage
         .fetch_raw_keys(query_key)
         .await
         .map_err(map_subxt_err)?;
 
     let keys: Vec<Vec<u8>> = keys_stream
-        .collect::<Vec<_>>()  // Collect into a Vec<Result<Vec<u8>, Error>>
-        .await                // Await the collection process
-        .into_iter()          // Convert into an iterator
+        .collect::<Vec<_>>() // Collect into a Vec<Result<Vec<u8>, Error>>
+        .await // Await the collection process
+        .into_iter() // Convert into an iterator
         .filter_map(Result::ok) // Filter out Ok values, ignore errors
-        .collect();           // Collect into a Vec<Vec<u8>>
+        .collect(); // Collect into a Vec<Vec<u8>>
 
     // println!("Obtained keys:");
     for key in keys.iter() {
@@ -324,7 +329,11 @@ pub async fn get_challenges(data: web::Data<AppState>) -> error::Result<HttpResp
         let account_id = Account::from(account_id.unwrap());
         // println!("account_id: {:?}", account_id);
 
-        if let Some(storage_data) = storage.fetch_raw(key.clone()).await.map_err(map_subxt_err)? {
+        if let Some(storage_data) = storage
+            .fetch_raw(key.clone())
+            .await
+            .map_err(map_subxt_err)?
+        {
             let value = ChallengeRuntime::<AccountId32>::decode(&mut &storage_data[..]);
             let value = value.unwrap();
 
@@ -350,17 +359,17 @@ pub async fn get_claims(data: web::Data<AppState>) -> error::Result<HttpResponse
 
     let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
 
-    let keys_stream  = storage
+    let keys_stream = storage
         .fetch_raw_keys(query_key)
         .await
         .map_err(map_subxt_err)?;
 
     let keys: Vec<Vec<u8>> = keys_stream
-        .collect::<Vec<_>>()  // Collect into a Vec<Result<Vec<u8>, Error>>
-        .await                // Await the collection process
-        .into_iter()          // Convert into an iterator
+        .collect::<Vec<_>>() // Collect into a Vec<Result<Vec<u8>, Error>>
+        .await // Await the collection process
+        .into_iter() // Convert into an iterator
         .filter_map(Result::ok) // Filter out Ok values, ignore errors
-        .collect();           // Collect into a Vec<Vec<u8>>
+        .collect(); // Collect into a Vec<Vec<u8>>
 
     // println!("Obtained keys:");
     for key in keys.iter() {
@@ -370,7 +379,11 @@ pub async fn get_claims(data: web::Data<AppState>) -> error::Result<HttpResponse
         let account_id = Account::from(account_id.unwrap());
         // println!("account_id: {:?}", account_id);
 
-        if let Some(storage_data) = storage.fetch_raw(key.clone()).await.map_err(map_subxt_err)? {
+        if let Some(storage_data) = storage
+            .fetch_raw(key.clone())
+            .await
+            .map_err(map_subxt_err)?
+        {
             let value = ClaimRuntime::decode(&mut &storage_data[..]);
             let value = value.unwrap();
 
