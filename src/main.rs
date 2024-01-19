@@ -8,7 +8,11 @@ use args::*;
 use clap::Parser;
 use state::*;
 use std::sync::Arc;
-use subxt::{client::OnlineClient, PolkadotConfig, backend::{legacy::LegacyRpcMethods, rpc::RpcClient}};
+use subxt::{
+    backend::{legacy::LegacyRpcMethods, rpc::RpcClient},
+    client::OnlineClient,
+    PolkadotConfig,
+};
 
 mod account;
 mod args;
@@ -42,7 +46,7 @@ async fn main() -> std::io::Result<()> {
 
     let rpc = LegacyRpcMethods::<PolkadotConfig>::new(rpc_client.clone());
 
-    let state = AppState { 
+    let state = AppState {
         api: Arc::new(api),
         node_url: args.node_server.to_string(),
         rpc: Arc::new(rpc),
@@ -70,6 +74,10 @@ async fn main() -> std::io::Result<()> {
             .route("account/exists", web::post().to(account::exists))
             .route("account/create", web::post().to(account::create))
             .route("account/fund", web::post().to(account::fund))
+            .route(
+                "account/set_balance",
+                web::post().to(account::set_balance),
+            )
             .route("account/balance", web::post().to(account::balance))
             .route("asset/create_class", web::post().to(asset::create_class))
             .route("asset/class_info", web::post().to(asset::class_info))

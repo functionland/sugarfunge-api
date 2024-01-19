@@ -4,6 +4,7 @@ use actix_web::Error;
 use actix_web::{error, web, HttpResponse};
 use codec::Decode;
 use codec::Encode;
+use futures::stream::StreamExt;
 use hex::ToHex;
 use serde_json::json;
 use std::str::FromStr;
@@ -14,7 +15,6 @@ use sugarfunge_api_types::primitives::*;
 use sugarfunge_api_types::sugarfunge;
 use sugarfunge_api_types::sugarfunge::runtime_types::bounded_collections::bounded_vec::BoundedVec;
 use sugarfunge_api_types::sugarfunge::runtime_types::sugarfunge_bundle::Bundle as BundleRuntime;
-use futures::stream::StreamExt;
 
 fn hash(s: &[u8]) -> sp_core::H256 {
     sp_io::hashing::blake2_256(s).into()
@@ -185,11 +185,11 @@ pub async fn get_bundles_id(data: web::Data<AppState>) -> error::Result<HttpResp
         .await
         .map_err(map_subxt_err)?;
     let keys: Vec<Vec<u8>> = keys_stream
-        .collect::<Vec<_>>()  // Collect into a Vec<Result<Vec<u8>, Error>>
-        .await                // Await the collection process
-        .into_iter()          // Convert into an iterator
+        .collect::<Vec<_>>() // Collect into a Vec<Result<Vec<u8>, Error>>
+        .await // Await the collection process
+        .into_iter() // Convert into an iterator
         .filter_map(Result::ok) // Filter out Ok values, ignore errors
-        .collect();          // Collect int
+        .collect(); // Collect int
 
     for key in keys.iter() {
         // println!("Key: len: {} 0x{}", key.0.len(), hex::encode(&key));
@@ -204,10 +204,14 @@ pub async fn get_bundles_id(data: web::Data<AppState>) -> error::Result<HttpResp
         let asset_id = u64::decode(&mut &asset_key[..]).unwrap();
         // println!("asset_id: {}", asset_id);
 
-        if let Some(storage_data) = storage.fetch_raw(key.clone()).await.map_err(map_subxt_err)? {
+        if let Some(storage_data) = storage
+            .fetch_raw(key.clone())
+            .await
+            .map_err(map_subxt_err)?
+        {
             let value = sp_core::H256::decode(&mut &storage_data[..]).unwrap();
             let bundle_id = value.encode_hex();
-        
+
             let item = BundleItem {
                 class_id: class_id.into(),
                 asset_id: asset_id.into(),
@@ -227,13 +231,10 @@ pub async fn verify_bundle_exist(
     bundle_id_value: BundleId,
 ) -> Result<bool, Error> {
     let api = &data.api;
-    let bundle_id_u64 = bundle_id_value.to_u64()
-    .map_err(|e| actix_web::error::ErrorBadRequest(format!("Invalid bundle ID: {}", e)))?;
-
 
     let query_key = sugarfunge::storage()
         .bundle()
-        .asset_bundles_iter1(bundle_id_u64)
+        .asset_bundles_iter()
         .to_root_bytes();
 
     let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
@@ -244,14 +245,18 @@ pub async fn verify_bundle_exist(
         .map_err(map_subxt_err)?;
 
     let keys: Vec<Vec<u8>> = keys_stream
-        .collect::<Vec<_>>()  // Collect into a Vec<Result<Vec<u8>, Error>>
-        .await                // Await the collection process
-        .into_iter()          // Convert into an iterator
+        .collect::<Vec<_>>() // Collect into a Vec<Result<Vec<u8>, Error>>
+        .await // Await the collection process
+        .into_iter() // Convert into an iterator
         .filter_map(Result::ok) // Filter out Ok values, ignore errors
-        .collect();          // Collect int
+        .collect(); // Collect int
 
     for key in keys.iter() {
-        if let Some(storage_data) = storage.fetch_raw(key.clone()).await.map_err(map_subxt_err)? {
+        if let Some(storage_data) = storage
+            .fetch_raw(key.clone())
+            .await
+            .map_err(map_subxt_err)?
+        {
             let value = sp_core::H256::decode(&mut &storage_data[..]).unwrap();
             let bundle_id: BundleId = value.encode_hex();
 
@@ -264,7 +269,6 @@ pub async fn verify_bundle_exist(
 }
 
 pub async fn get_bundles_data(data: web::Data<AppState>) -> error::Result<HttpResponse> {
-
     let api = &data.api;
 
     let mut result_array = Vec::new();
@@ -281,11 +285,11 @@ pub async fn get_bundles_data(data: web::Data<AppState>) -> error::Result<HttpRe
         .map_err(map_subxt_err)?;
 
     let keys: Vec<Vec<u8>> = keys_stream
-        .collect::<Vec<_>>()  // Collect into a Vec<Result<Vec<u8>, Error>>
-        .await                // Await the collection process
-        .into_iter()          // Convert into an iterator
+        .collect::<Vec<_>>() // Collect into a Vec<Result<Vec<u8>, Error>>
+        .await // Await the collection process
+        .into_iter() // Convert into an iterator
         .filter_map(Result::ok) // Filter out Ok values, ignore errors
-        .collect();          // Collect int
+        .collect(); // Collect int
 
     for key in keys.iter() {
         // println!("Key: len: {} 0x{}", key.0.len(), hex::encode(&key));
@@ -295,7 +299,11 @@ pub async fn get_bundles_data(data: web::Data<AppState>) -> error::Result<HttpRe
         let bundle_id = sp_core::H256::decode(&mut &bundle_key[..]).unwrap();
         let bundle_id_value: BundleId = bundle_id.encode_hex();
 
-        if let Some(storage_data) = storage.fetch_raw(key.clone()).await.map_err(map_subxt_err)? {
+        if let Some(storage_data) = storage
+            .fetch_raw(key.clone())
+            .await
+            .map_err(map_subxt_err)?
+        {
             let value = BundleRuntime::<
                 u64,
                 u64,

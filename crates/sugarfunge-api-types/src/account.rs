@@ -58,3 +58,16 @@ pub struct Refund {
     pub seed: String,
     pub amount: u128,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SetBalanceInput {
+    pub seed: Seed,
+    pub to: Account,
+    pub amount: Balance,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SetBalanceOutput {
+    pub account: Account,
+    pub amount: Balance,
+}
