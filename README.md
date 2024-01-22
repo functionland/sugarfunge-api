@@ -24,7 +24,9 @@ OPTIONS:
 
 ## Generate SugarFunge Types
 ```
-subxt-cli metadata -f bytes > sugarfunge_metadata.scale --url http://localhost:9934/
+cargo install subxt-cli
+
+subxt metadata -f bytes > sugarfunge_metadata.scale --url http://localhost:9944/
 ```
 
 ## Subscriptions
