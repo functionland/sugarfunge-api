@@ -74,10 +74,7 @@ async fn main() -> std::io::Result<()> {
             .route("account/exists", web::post().to(account::exists))
             .route("account/create", web::post().to(account::create))
             .route("account/fund", web::post().to(account::fund))
-            .route(
-                "account/set_balance",
-                web::post().to(account::set_balance),
-            )
+            .route("account/set_balance", web::post().to(account::set_balance))
             .route("account/balance", web::post().to(account::balance))
             .route("asset/create_class", web::post().to(asset::create_class))
             .route("asset/class_info", web::post().to(asset::class_info))
@@ -162,6 +159,10 @@ async fn main() -> std::io::Result<()> {
             .route(
                 "fula/manifest/available",
                 web::post().to(fula::get_available_manifests),
+            )
+            .route(
+                "fula/manifest/available_batch",
+                web::post().to(fula::get_available_manifests_batch),
             )
             .route(
                 "fula/manifest/available/alter",

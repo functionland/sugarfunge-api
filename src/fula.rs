@@ -654,6 +654,48 @@ pub async fn get_available_manifests(
     }))
 }
 
+pub async fn get_available_manifests_batch(
+    data: web::Data<AppState>,
+    req: web::Json<GetAvailableManifestsBatchInput>,
+) -> error::Result<HttpResponse> {
+    let mut result_array = Vec::new();
+    let api = &data.api;
+
+    for cid_value in req.cids.to_vec() {
+        let cid: Vec<u8> = String::from(&cid_value.clone()).into_bytes();
+        let cid = BoundedVec(cid);
+
+        let call = sugarfunge::storage()
+            .fula()
+            .manifests(u32::from(req.pool_id), cid);
+
+        let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
+
+        let data = storage.fetch(&call).await.map_err(map_subxt_err)?;
+
+        match data {
+            Some(data) => {
+                let uploaders_data =
+                    transform_vec_uploader_data_runtime_to_vec_uploader_data(data.users_data);
+                if verify_availability_for_account(uploaders_data.to_vec(), req.uploader.clone()) {
+                    result_array.push(ManifestAvailableBatch {
+                        cid: cid_value,
+                        replication_available: get_replication_for_uploader(
+                            uploaders_data.to_owned(),
+                            req.uploader.clone(),
+                        ),
+                    })
+                }
+            }
+            None => continue,
+        }
+    }
+
+    Ok(HttpResponse::Ok().json(GetAvailableManifestsBatchOutput {
+        manifests: result_array,
+    }))
+}
+
 pub async fn get_all_manifests_storer_data(
     data: web::Data<AppState>,
     req: web::Json<GetAllManifestsStorerDataInput>,
@@ -1000,12 +1042,47 @@ pub fn verify_availability(uploaders: Vec<UploaderData>) -> bool {
         .is_some();
 }
 
+pub fn verify_availability_for_account(uploaders: Vec<UploaderData>, account: Account) -> bool {
+    return uploaders
+        .iter()
+        .position(|x| {
+            u16::from(x.replication_available) > 0
+                && accounts_match(account.clone(), x.uploader.clone()).is_ok()
+                && accounts_match(account.clone(), x.uploader.clone()).unwrap() == true
+        })
+        .is_some();
+}
+
+pub fn accounts_match(first: Account, second: Account) -> Result<bool, actix_web::Error> {
+    let first_public = Public::from_str(&first).map_err(map_account_err)?;
+    let first_account = AccountId32::from(first_public.0);
+
+    let second_public = Public::from_str(&second).map_err(map_account_err)?;
+    let second_account = AccountId32::from(second_public.0);
+
+    Ok(first_account == second_account)
+}
+
 pub fn get_added_replication(uploaders: Vec<UploaderData>) -> ReplicationFactor {
     let mut result = 0;
     for user_data in uploaders {
         result += u16::from(user_data.replication_available);
     }
     return result.into();
+}
+
+pub fn get_replication_for_uploader(
+    uploaders: Vec<UploaderData>,
+    account: Account,
+) -> ReplicationFactor {
+    for user_data in uploaders {
+        if accounts_match(user_data.uploader.clone(), account.clone()).is_ok()
+            && accounts_match(user_data.uploader.clone(), account.clone()).unwrap() == true
+        {
+            return user_data.replication_available.into();
+        }
+    }
+    0.into()
 }
 
 pub async fn transform_option_account_value_reverse(
