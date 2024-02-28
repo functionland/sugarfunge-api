@@ -24,6 +24,7 @@ mod config;
 mod contract;
 mod fula;
 mod market;
+mod online;
 mod pool;
 mod state;
 mod subscription;
@@ -74,10 +75,7 @@ async fn main() -> std::io::Result<()> {
             .route("account/exists", web::post().to(account::exists))
             .route("account/create", web::post().to(account::create))
             .route("account/fund", web::post().to(account::fund))
-            .route(
-                "account/set_balance",
-                web::post().to(account::set_balance),
-            )
+            .route("account/set_balance", web::post().to(account::set_balance))
             .route("account/balance", web::post().to(account::balance))
             .route("asset/create_class", web::post().to(asset::create_class))
             .route("asset/class_info", web::post().to(asset::class_info))
@@ -234,6 +232,18 @@ async fn main() -> std::io::Result<()> {
             .route(
                 "fula/mumbai/convert_tokens",
                 web::post().to(contract::mumbai_convert_to_fula_endpoint),
+            )
+            .route(
+                "fula/online/get_heartbeats",
+                web::post().to(online::get_heartbeats),
+            )
+            .route(
+                "fula/online/get_authored_blocks",
+                web::post().to(online::get_authored_blocks),
+            )
+            .route(
+                "fula/online/get_heartbeat_time",
+                web::post().to(online::get_heartbeat_time),
             )
     })
     .bind((args.listen.host_str().unwrap(), args.listen.port().unwrap()))?

@@ -1,9 +1,12 @@
 #[subxt::subxt(
     runtime_metadata_path = "sugarfunge_metadata.scale",
-    derive_for_type(path = "frame_support::traits::tokens::misc::BalanceStatus", derive = "serde::Serialize"),
+    derive_for_type(
+        path = "frame_support::traits::tokens::misc::BalanceStatus",
+        derive = "serde::Serialize"
+    ),
     derive_for_type(path = "pallet_balances::pallet::Event", derive = "serde::Serialize"),
     derive_for_type(path = "sugarfunge_asset::pallet::Event", derive = "serde::Serialize"),
-    derive_for_type(path = "sugarfunge_bag::pallet::Event", derive = "serde::Serialize"),
+    derive_for_type(path = "sugarfunge_bag::pallet::Event", derive = "serde::Serialize")
 )]
 pub mod sugarfunge {}
 pub mod account;
@@ -14,6 +17,7 @@ pub mod challenge;
 pub mod contract;
 pub mod fula;
 pub mod market;
+pub mod online;
 pub mod pool;
 pub mod primitives;
 pub mod validator;
