@@ -91,11 +91,37 @@ pub async fn batch_upload_manifest(
 
     let api = &data.api;
 
+    // **1. Check for existing manifests**
+    let existing_cid_check = get_available_manifests_batch(
+        data.clone(), 
+        web::Json(GetAvailableManifestsBatchInput {
+            cids: cids.clone(), 
+            pool_id: pool_ids[0], // Assuming we want to check all pools at once
+            uploader: req.uploader.clone(),  // Check availability for the uploader
+        })
+    ).await?;
+
+    let existing_cids: Vec<String> = existing_cid_check.manifests
+        .iter() 
+        .map(|m| m.cid.clone())
+        .collect(); 
+
+    // **2. Filter out any manifests that already exist**
+    let (new_cids, new_manifests, new_pool_ids, new_replication_factors) = 
+        cids.into_iter()
+            .zip(manifests.into_iter())
+            .zip(pool_ids.into_iter()) 
+            .zip(replication_factors.into_iter())
+            .filter(|(cid, _, _, _)| !existing_cids.contains(&cid.to_string()))
+            .unzip();
+
+    // **3. Proceed with the upload only for non-existing manifests**
+    // TODO: Create them if a different account uploaded them but do not count the replication factor twice
     let call = sugarfunge::tx().fula().batch_upload_manifest(
-        manifests,
-        cids,
-        pool_ids,
-        replication_factors,
+        new_manifests,
+        new_cids,
+        new_pool_ids,
+        new_replication_factors,
     );
 
     let set_balance = get_balance(&req.seed).await;
