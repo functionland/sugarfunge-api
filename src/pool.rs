@@ -73,23 +73,15 @@ pub async fn leave_pool(
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
 
+    let mut target_account: Option<AccountId32> = None::<AccountId32>;
+    if let Some(value) = req.target_account.clone() {
+        target_account = Some(AccountId32::try_from(&value).map_err(map_account_err)?);
+    }
     let api = &data.api;
 
-    // Convert target_account to AccountId32 if provided
-    let target_account_id = match &req.target_account {
-        Some(account_str) => {
-            let account_id = AccountId32::from_str(account_str)
-                .map_err(|_| error::ErrorBadRequest("Invalid target account"))?;
-            Some(account_id)
-        },
-        None => None,
-    };
-
-    let call = if let Some(account_id) = target_account_id {
-        sugarfunge::tx().pool().leave_pool(req.pool_id.into(), Some(account_id))
-    } else {
-        sugarfunge::tx().pool().leave_pool(req.pool_id.into(), None)
-    };
+    let call = sugarfunge::tx()
+        .pool()
+        .leave_pool(req.pool_id.into(), target_account);
     let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
@@ -168,24 +160,15 @@ pub async fn cancel_join_pool(
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
 
+    let mut target_account: Option<AccountId32> = None::<AccountId32>;
+    if let Some(value) = req.target_account.clone() {
+        target_account = Some(AccountId32::try_from(&value).map_err(map_account_err)?);
+    }
     let api = &data.api;
 
-    // Convert target_account to AccountId32 if provided
-    let target_account_id = match &req.target_account {
-        Some(account_str) => {
-            let account_id = AccountId32::from_str(account_str)
-                .map_err(|_| error::ErrorBadRequest("Invalid target account"))?;
-            Some(account_id)
-        },
-        None => None,
-    };
-
-    // Adjust the call based on whether target_account is provided
-    let call = if let Some(account_id) = target_account_id {
-        sugarfunge::tx().pool().cancel_join(req.pool_id.into(), Some(account_id))
-    } else {
-        sugarfunge::tx().pool().cancel_join(req.pool_id.into(), None)
-    };
+    let call = sugarfunge::tx()
+        .pool()
+        .cancel_join(req.pool_id.into(), target_account);
     let set_balance = get_balance(&req.seed).await;
     let result = api
         .tx()
