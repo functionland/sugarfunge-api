@@ -20,6 +20,8 @@ use sugarfunge_api_types::sugarfunge::runtime_types::functionland_fula::{
     ManifestWithPoolId as ManifestWithPoolIdRuntime, StorerData as StorerDataRuntime,
     UploaderData as UploaderDataRuntime,
 };
+use subxt::ext::sp_core::Pair;
+use subxt::ext::sp_runtime::traits::IdentifyAccount;
 
 pub async fn upload_manifest(
     data: web::Data<AppState>,
@@ -81,49 +83,75 @@ pub async fn batch_upload_manifest(
     req: web::Json<BatchUploadManifestInput>,
 ) -> error::Result<HttpResponse> {
     let pair = get_pair_from_seed(&req.seed.clone())?;
-    let signer = PairSigner::new(pair);
+    let signer = PairSigner::new(pair.clone());
 
-    let pool_ids = get_vec_pool_id_from_input(req.pool_id.to_vec());
-    let cids = get_vec_cids_from_input(req.cid.to_vec());
-    let manifests = get_vec_manifests_from_input(req.manifest_metadata.to_vec());
-    let replication_factors =
+    let pool_ids: Vec<u32> = get_vec_pool_id_from_input(req.pool_id.clone().to_vec());
+    //let cids: Vec<BoundedVec<u8>> = get_vec_cids_from_input(req.cid.clone().to_vec());
+    //let manifests: Vec<BoundedVec<u8>> = get_vec_manifests_from_input(req.manifest_metadata.to_vec());
+    let replication_factors: Vec<u16> =
         get_vec_replication_factor_from_input(req.replication_factor.to_vec());
 
     let api = &data.api;
 
     // **1. Check for existing manifests**
-    // 1. Check for existing manifests
-    let existing_cid_check = get_available_manifests_batch(
+    let account = pair.public().into_account();
+    let uploader_new =  Account::from(format!("{}", account));
+    let existing_cid_check = get_available_manifests_batch_direct(
         data.clone(), 
         web::Json(GetAvailableManifestsBatchInput {
-            cids: cids.clone(), 
+            cids: req.cid.clone().to_vec(), 
             pool_id: pool_ids[0].into(), // Convert u32 to PoolId
-            uploader: req.uploader.clone(),  // Access inner uploader
+            uploader: uploader_new,  // Access inner uploader
         })
     ).await?;
 
     // Extract cids correctly from the response
-    let existing_cids: Vec<String> = existing_cid_check.manifests
-        .iter() 
-        .map(|m| m.cid.clone())
-        .collect(); 
+    let existing_cids: Vec<Vec<u8>> = existing_cid_check.manifests
+    .iter()
+    .map(|manifest| manifest.cid.clone().as_bytes().to_vec())
+    .collect();
+    
+    let indices_to_keep: Vec<usize> = req.cid.clone().to_vec()
+    .iter()
+    .enumerate() // Enumerate to keep track of indices
+    .filter_map(|(index, cid)| {
+        if !existing_cids.contains(&cid.as_bytes().to_vec()) {
+            Some(index) // Keep index if cid is not in existing_cids
+        } else {
+            None // Filter out
+        }
+    })
+    .collect();
 
     // **2. Filter out any manifests that already exist**
-    let (new_cids, new_manifests, new_pool_ids, new_replication_factors) = 
-        cids.into_iter()
-            .zip(manifests.into_iter())
-            .zip(pool_ids.into_iter()) 
-            .zip(replication_factors.into_iter())
-            .filter(|(cid, _, _, _)| !existing_cids.contains(&cid.to_string()))
-            .unzip();
+    let filtered_cids_vec: Vec<Cid> = indices_to_keep.iter().map(|&i| req.cid[i].clone()).collect();
+    let filtered_cids: Vec<BoundedVec<u8>> = get_vec_cids_from_input(filtered_cids_vec.clone().to_vec());
+    
+    let filtered_manifests_vec: Vec<serde_json::Value> = req.manifest_metadata
+    .iter() // Directly iterate over references, no need to call `to_vec()` beforehand
+    .enumerate()
+    .filter_map(|(i, item)| {
+        if indices_to_keep.contains(&i) {
+            Some(item.clone()) // Clone `item` here
+        } else {
+            None
+        }
+    })
+    .collect();
+
+    let filtered_manifests: Vec<BoundedVec<u8>> = get_vec_manifests_from_input(filtered_manifests_vec);
+    let filtered_pool_ids: Vec<u32> = indices_to_keep.iter().map(|&i| pool_ids[i]).collect();
+    let filtered_replication_factors: Vec<u16> = indices_to_keep.iter().map(|&i| replication_factors[i]).collect();
+
+
 
     // **3. Proceed with the upload only for non-existing manifests**
     // TODO: Create them if a different account uploaded them but do not count the replication factor twice
     let call = sugarfunge::tx().fula().batch_upload_manifest(
-        new_manifests,
-        new_cids,
-        new_pool_ids,
-        new_replication_factors,
+        filtered_manifests,
+        filtered_cids,
+        filtered_pool_ids,
+        filtered_replication_factors,
     );
 
     let set_balance = get_balance(&req.seed).await;
@@ -722,6 +750,49 @@ pub async fn get_available_manifests_batch(
     Ok(HttpResponse::Ok().json(GetAvailableManifestsBatchOutput {
         manifests: result_array,
     }))
+}
+
+
+async fn get_available_manifests_batch_direct(
+    data: web::Data<AppState>,
+    req: web::Json<GetAvailableManifestsBatchInput>,
+) -> error::Result<GetAvailableManifestsBatchOutput> {
+    let mut result_array = Vec::new();
+    let api = &data.api;
+
+    for cid_value in req.cids.to_vec() {
+        let cid: Vec<u8> = String::from(&cid_value.clone()).into_bytes();
+        let cid = BoundedVec(cid);
+
+        let call = sugarfunge::storage()
+            .fula()
+            .manifests(u32::from(req.pool_id), cid);
+
+        let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
+
+        let data = storage.fetch(&call).await.map_err(map_subxt_err)?;
+
+        match data {
+            Some(data) => {
+                let uploaders_data =
+                    transform_vec_uploader_data_runtime_to_vec_uploader_data(data.users_data);
+                if verify_availability_for_account(uploaders_data.to_vec(), req.uploader.clone()) {
+                    result_array.push(ManifestAvailableBatch {
+                        cid: cid_value,
+                        replication_available: get_replication_for_uploader(
+                            uploaders_data.to_owned(),
+                            req.uploader.clone(),
+                        ),
+                    })
+                }
+            }
+            None => continue,
+        }
+    }
+
+    Ok(GetAvailableManifestsBatchOutput {
+        manifests: result_array,
+    })
 }
 
 pub async fn get_all_manifests_storer_data(
