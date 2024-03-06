@@ -98,7 +98,7 @@ pub async fn batch_upload_manifest(
         web::Json(GetAvailableManifestsBatchInput {
             cids: cids.clone(), 
             pool_id: pool_ids[0].into(), // Convert u32 to PoolId
-            uploader: req.0.uploader.clone(),  // Access inner uploader
+            uploader: req.uploader.clone(),  // Access inner uploader
         })
     ).await?;
 
