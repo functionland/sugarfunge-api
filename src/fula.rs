@@ -92,15 +92,17 @@ pub async fn batch_upload_manifest(
     let api = &data.api;
 
     // **1. Check for existing manifests**
+    // 1. Check for existing manifests
     let existing_cid_check = get_available_manifests_batch(
         data.clone(), 
         web::Json(GetAvailableManifestsBatchInput {
             cids: cids.clone(), 
-            pool_id: pool_ids[0], // Assuming we want to check all pools at once
-            uploader: req.uploader.clone(),  // Check availability for the uploader
+            pool_id: pool_ids[0].into(), // Convert u32 to PoolId
+            uploader: req.0.uploader.clone(),  // Access inner uploader
         })
     ).await?;
 
+    // Extract cids correctly from the response
     let existing_cids: Vec<String> = existing_cid_check.manifests
         .iter() 
         .map(|m| m.cid.clone())
