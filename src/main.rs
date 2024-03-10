@@ -24,6 +24,7 @@ mod config;
 mod contract;
 mod fula;
 mod market;
+mod online;
 mod pool;
 mod state;
 mod subscription;
@@ -101,6 +102,10 @@ async fn main() -> std::io::Result<()> {
             .route(
                 "validator/add_validator",
                 web::post().to(validator::add_validator),
+            )
+            .route(
+                "validator/activate",
+                web::post().to(validator::activate_validator),
             )
             .route("validator/set_keys", web::post().to(validator::set_keys))
             .route(
@@ -235,6 +240,18 @@ async fn main() -> std::io::Result<()> {
             .route(
                 "fula/mumbai/convert_tokens",
                 web::post().to(contract::mumbai_convert_to_fula_endpoint),
+            )
+            .route(
+                "fula/online/get_heartbeats",
+                web::post().to(online::get_heartbeats),
+            )
+            .route(
+                "fula/online/get_authored_blocks",
+                web::post().to(online::get_authored_blocks),
+            )
+            .route(
+                "fula/online/get_heartbeat_time",
+                web::post().to(online::get_heartbeat_time),
             )
     })
     .bind((args.listen.host_str().unwrap(), args.listen.port().unwrap()))?

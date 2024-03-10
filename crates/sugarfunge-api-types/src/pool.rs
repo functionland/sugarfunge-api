@@ -23,6 +23,7 @@ pub struct CreatePoolOutput {
 pub struct LeavePoolInput {
     pub seed: Seed,
     pub pool_id: PoolId,
+    pub target_account: Option<Account>, // Optional target account to be removed
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -52,6 +53,7 @@ pub struct JoinPoolOutput {
 pub struct CancelJoinPoolInput {
     pub seed: Seed,
     pub pool_id: PoolId,
+    pub target_account: Option<Account>, // Optional target account to be removed
 }
 
 #[derive(Serialize, Deserialize, Debug)]
