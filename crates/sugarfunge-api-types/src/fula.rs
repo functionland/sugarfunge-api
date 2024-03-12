@@ -238,3 +238,21 @@ pub struct UploaderData {
     pub storers: Vec<Account>,
     pub replication_available: ReplicationFactor,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetAvailableManifestsBatchInput {
+    pub pool_id: PoolId,
+    pub uploader: Account,
+    pub cids: Vec<Cid>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetAvailableManifestsBatchOutput {
+    pub manifests: Vec<ManifestAvailableBatch>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ManifestAvailableBatch {
+    pub cid: Cid,
+    pub replication_available: ReplicationFactor,
+}
