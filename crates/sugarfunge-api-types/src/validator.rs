@@ -35,3 +35,14 @@ pub struct SetKeysOutput {
     pub aura: String,
     pub grandpa: String,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct IsValidatorInput {
+    pub account: Account,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct IsValidatorOutput {
+    pub approved: bool,
+    pub offline: bool,
+}

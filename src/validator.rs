@@ -66,7 +66,9 @@ pub async fn activate_validator(
     let validator_id = subxt::utils::AccountId32::from(validator_bytes); // Create AccountId32 from the byte array
     let api = &data.api;
 
-    let call = sugarfunge::tx().validator_set().add_validator_again(validator_id);
+    let call = sugarfunge::tx()
+        .validator_set()
+        .add_validator_again(validator_id);
 
     let result = api
         .tx()
@@ -145,18 +147,21 @@ pub async fn set_keys(
     let pair = get_pair_from_seed(&req.seed)?;
     let signer = PairSigner::new(pair);
 
-    // TO DO: Here the types converted are not the ones expected, but if you check the sugarfunge-node it is executed like this and it works
-    let aura = sp_core::sr25519::Public::from_str(req.aura.as_str()).map_err(map_account_err)?;
-    let grandpa =
+    let aura_public =
+        sp_core::sr25519::Public::from_str(req.aura.as_str()).map_err(map_account_err)?;
+    let grandpa_public =
         sp_core::sr25519::Public::from_str(req.grandpa.as_str()).map_err(map_account_err)?;
 
     let api = &data.api;
+    let aura: sugarfunge_api_types::sugarfunge::runtime_types::sp_consensus_aura::sr25519::app_sr25519::Public = unsafe { std::mem::transmute(aura_public.clone()) };
+    let grandpa: sugarfunge_api_types::sugarfunge::runtime_types::sp_consensus_grandpa::app::Public = unsafe { std::mem::transmute(grandpa_public) };
+    let im_online: sugarfunge_api_types::sugarfunge::runtime_types::pallet_im_online::sr25519::app_sr25519::Public = unsafe { std::mem::transmute(aura_public.clone()) };
 
-    let aura: sugarfunge_api_types::sugarfunge::runtime_types::sp_consensus_aura::sr25519::app_sr25519::Public = unsafe { std::mem::transmute(aura) };
-    let grandpa: sugarfunge_api_types::sugarfunge::runtime_types::sp_consensus_grandpa::app::Public = unsafe { std::mem::transmute(grandpa) };
-
-    // TODO: Here is where the error happens because the types are not the ones expected, if you try to use .into() it requires to create a Into<> function maybe that is the best approach
-    let session_keys = SessionKeys { aura, grandpa };
+    let session_keys = SessionKeys {
+        aura,
+        grandpa,
+        im_online,
+    };
 
     let call = sugarfunge::tx()
         .session()
@@ -174,4 +179,43 @@ pub async fn set_keys(
         aura: req.aura.clone(),
         grandpa: req.grandpa.clone(),
     }))
+}
+
+pub async fn is_validator(
+    data: web::Data<AppState>,
+    req: web::Json<IsValidatorInput>,
+) -> error::Result<HttpResponse> {
+    let mut result = IsValidatorOutput {
+        approved: false,
+        offline: false,
+    };
+    // Convert the provided account public key from a string to sp_core::sr25519::Public
+    let account_public =
+        sp_core::sr25519::Public::from_str(req.account.as_str()).map_err(map_account_err)?;
+
+    // Convert sp_core::sr25519::Public to a [u8; 32] array
+    let account_array: [u8; 32] = account_public.0;
+
+    // Convert [u8; 32] array to subxt::utils::AccountId32
+    let account = subxt::utils::AccountId32::from(account_array);
+    let api = &data.api;
+
+    let call = sugarfunge::storage().validator_set().approved_validators();
+    let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
+    let approved_list = storage.fetch(&call).await.map_err(map_subxt_err)?;
+
+    match approved_list {
+        Some(validators) => result.approved = validators.0.contains(&account),
+        None => result.approved = false,
+    }
+
+    let call = sugarfunge::storage().validator_set().validators();
+    let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
+    let offline_list = storage.fetch(&call).await.map_err(map_subxt_err)?;
+
+    match offline_list {
+        Some(validators) => result.offline = !validators.0.contains(&account),
+        None => result.offline = true,
+    }
+    Ok(HttpResponse::Ok().json(result))
 }
