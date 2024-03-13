@@ -113,6 +113,10 @@ async fn main() -> std::io::Result<()> {
                 web::post().to(validator::remove_validator),
             )
             .route(
+                "validator/is_online",
+                web::post().to(validator::is_validator),
+            )
+            .route(
                 "market/create_market",
                 web::post().to(market::create_market),
             )
