@@ -1392,7 +1392,7 @@ checksum = "cd7e35aee659887cbfb97aaf227ac12cad1a9d7c71e55ff3376839ed4e282d08"
 [[package]]
 name = "contract-api-types"
 version = "0.1.0"
-source = "git+https://github.com/functionland/fula-contract-api.git?rev=3ee5c869e38614baf9c729a5a1673f433589ac5a#3ee5c869e38614baf9c729a5a1673f433589ac5a"
+source = "git+https://github.com/functionland/fula-contract-api.git?rev=265a66c0940351bb53bb776dd2e8a61fbf97cb91#265a66c0940351bb53bb776dd2e8a61fbf97cb91"
 dependencies = [
  "serde",
  "serde_json",
