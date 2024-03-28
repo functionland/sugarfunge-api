@@ -174,6 +174,10 @@ async fn main() -> std::io::Result<()> {
                 web::post().to(fula::get_available_manifests_batch),
             )
             .route(
+                "fula/manifest/available_allaccounts_batch",
+                web::post().to(fula::get_available_manifests_allaccounts_batch),
+            )
+            .route(
                 "fula/manifest/available/alter",
                 web::post().to(fula::get_all_available_manifests_alter),
             )

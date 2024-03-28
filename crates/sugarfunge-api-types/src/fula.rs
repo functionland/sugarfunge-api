@@ -247,12 +247,28 @@ pub struct GetAvailableManifestsBatchInput {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct GetAvailableManifestsAllaccountsBatchInput {
+    pub pool_id: PoolId,
+    pub cids: Vec<Cid>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct GetAvailableManifestsBatchOutput {
     pub manifests: Vec<ManifestAvailableBatch>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetAvailableManifestsAllaccountsBatchOutput {
+    pub manifests: Vec<ManifestAvailableAllaccountsBatch>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ManifestAvailableBatch {
     pub cid: Cid,
     pub replication_available: ReplicationFactor,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ManifestAvailableAllaccountsBatch {
+    pub cid: Cid,
 }

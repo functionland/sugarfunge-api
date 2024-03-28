@@ -753,6 +753,41 @@ pub async fn get_available_manifests_batch(
 }
 
 
+pub async fn get_available_manifests_allaccounts_batch(
+    data: web::Data<AppState>,
+    req: web::Json<GetAvailableManifestsAllaccountsBatchInput>,
+) -> error::Result<HttpResponse> {
+    let mut result_array = Vec::new();
+    let api = &data.api;
+
+    for cid_value in req.cids.to_vec() {
+        let cid: Vec<u8> = String::from(&cid_value.clone()).into_bytes();
+        let cid = BoundedVec(cid);
+
+        let call = sugarfunge::storage()
+            .fula()
+            .manifests(u32::from(req.pool_id), cid);
+
+        let storage = api.storage().at_latest().await.map_err(map_subxt_err)?;
+
+        let data = storage.fetch(&call).await.map_err(map_subxt_err)?;
+
+        match data {
+            Some(_data) => { // Renaming `data` to `_data` to indicate it's intentionally unused
+                result_array.push(ManifestAvailableAllaccountsBatch {
+                    cid: cid_value
+                })
+            }
+            None => continue,
+        }
+    }
+
+    Ok(HttpResponse::Ok().json(GetAvailableManifestsAllaccountsBatchOutput {
+        manifests: result_array,
+    }))
+}
+
+
 async fn get_available_manifests_batch_direct(
     data: web::Data<AppState>,
     req: web::Json<GetAvailableManifestsBatchInput>,
